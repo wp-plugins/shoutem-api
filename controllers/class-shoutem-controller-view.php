@@ -106,6 +106,11 @@ class ShoutemControllerView {
 			return;
 		}
 		
+		if (string_ends_with($name, "_at")) {
+			$value = date(DATE_RSS, strtotime($value));
+			return;
+		}
+		
 		if (is_numeric($value)) {
 			$value = (int)$value;
 			return;

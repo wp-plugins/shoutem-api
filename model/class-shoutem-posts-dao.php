@@ -45,7 +45,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		$post_commentable = ($post['commentable'] == 'open');
 		 
 		$post['commentable'] = 	$this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);	
-		
+		$post['link'] = get_permalink($post['post_id']);
 		return $post;
 	}
 	
@@ -123,7 +123,7 @@ class ShoutemPostsDao extends ShoutemDao {
 			$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
 			$remaped_post['likeable'] = 0;
 			$remaped_post['likes_count'] = 0;
-			
+			$remaped_post['link'] = get_permalink($remaped_post['post_id']);
 			$post_commentable =  ($remaped_post['commentable'] == 'open');
 			
 			$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
