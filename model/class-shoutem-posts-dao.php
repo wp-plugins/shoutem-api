@@ -44,7 +44,8 @@ class ShoutemPostsDao extends ShoutemDao {
 		$is_reqistration_required = ('1' == get_option('comment_registration')); 
 		$post_commentable = ($post['commentable'] == 'open');
 		 
-		$post['commentable'] = 	$this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);	
+		$post['commentable'] = 	$this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
+		$post['image_url'] = $this->get_first_image($post['body']);	
 		$post['link'] = get_permalink($post['post_id']);
 		return $post;
 	}
@@ -124,6 +125,7 @@ class ShoutemPostsDao extends ShoutemDao {
 			$remaped_post['likeable'] = 0;
 			$remaped_post['likes_count'] = 0;
 			$remaped_post['link'] = get_permalink($remaped_post['post_id']);
+			$remaped_post['image_url'] = $this->get_first_image($remaped_post['body']);
 			$post_commentable =  ($remaped_post['commentable'] == 'open');
 			
 			$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
@@ -134,6 +136,13 @@ class ShoutemPostsDao extends ShoutemDao {
 		}
 		
 		return $paged_posts;
+	}
+	
+	private function get_first_image($data) {
+		if(preg_match('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i',$data,$matches) > 0) {
+				return $matches[1];
+		} 		
+		return '';
 	}
 	
 	private function get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required) {
