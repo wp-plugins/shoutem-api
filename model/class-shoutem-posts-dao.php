@@ -19,58 +19,23 @@
 class ShoutemPostsDao extends ShoutemDao {
 	
 	public function get($params) {
-		global $wpdb;
-		$query = $wpdb->prepare("
-			SELECT wposts.ID post_id,
-				wposts.post_modified_gmt published_at,
-				wusers.user_nicename author,
-				wposts.post_title title,
-				wposts.post_excerpt summary,
-				wposts.post_content body,
-				wposts.comment_status commentable,
-				0 likeable,
-				comment_count comments_count,
-				0 likes_count
-			FROM $wpdb->posts as wposts, 
-				$wpdb->users as wusers
-			WHERE wposts.post_author = wusers.ID AND
-				wposts.ID = %d AND
-				wposts.post_status = 'publish'								
-			", $params['post_id']);
-		
-		$post = $this->get_by_sql($query);
-		
-		$is_user_logged_in = isset($params['session_id']);
-		$is_reqistration_required = ('1' == get_option('comment_registration')); 
-		$post_commentable = ($post['commentable'] == 'open');
-		 
-		$post['commentable'] = 	$this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
-		$post['image_url'] = $this->get_first_image($post['body']);	
-		$post['link'] = get_permalink($post['post_id']);
+		$wp_post = get_post($params['post_id']);
+		$post = $this->get_post($wp_post,$params);
 		return $post;
 	}
 	
-	public function categories($params) {
+	public function categories($params) {		
 		
-		global $wpdb;
-		$query = $wpdb->prepare("
-			SELECT wterms.term_id category_id,
-				wterms.name,
-				1 allowed
-			FROM $wpdb->terms as wterms,
-				$wpdb->term_taxonomy as wterm_taxonomy
-			WHERE wterms.term_id = wterm_taxonomy.term_id AND
-				wterm_taxonomy.taxonomy = %s											
-		",'category');
-		//standard return $this->find_by_sql($query,$params); can not be used because of fictive category for all posts.
 		$offset = $params['offset'];
 		$limit = $params['limit'];
-		$result = array();
+				
+		$results = array();
+		
 		if ($offset == 0) {
 			//add fictive category all
 			$blog_name = get_bloginfo('name');
 			$limit = $limit - 1;
-			$result[] = array( 
+			$results[] = array( 
 					'category_id' => -1,
 					'name' => $blog_name,
 					'allowed' => true
@@ -80,8 +45,26 @@ class ShoutemPostsDao extends ShoutemDao {
 			$offset -= 1;
 		}
 		
-		$result = array_merge($result, $this->get_data_by_sql($query, $offset, $limit));
-		return $this->add_paging_info($result,$params);	
+		$category_args = array (
+			'number' => $offset + $limit + 1
+		);
+		
+		$categories = get_categories();
+	 	//because there is no offset in get_categories();
+	 	$categories = array_slice($categories,$offset, $limit + 1);
+	 	
+		foreach($categories as $category) {
+			$remaped_category = 
+				$this->array_remap_keys($category, array (
+						'cat_ID' 	=> 'category_id',
+						'name'		=> 'name'
+				));			
+			$remaped_category['allowed'] = true;
+			$results[] = $remaped_category;
+		}
+		
+		return $this->add_paging_info($results,$params);	
+		
 	}
 	
 	public function find($params) {
@@ -102,41 +85,45 @@ class ShoutemPostsDao extends ShoutemDao {
 			$post_args['category'] = $params['category_id']; 	
 		}
 		
-		$posts = get_posts($post_args);
-		
-		$is_user_logged_in = isset($params['session_id']);
-		$is_reqistration_required = ('1' == get_option('comment_registration')); 
-		
+		$posts = get_posts($post_args);				 		
 		$remaped_posts = array();
-		foreach($posts as $post) {
-			$remaped_post = $this->array_remap_keys($post, 
-			array (
-					'ID'			=> 'post_id',
-					'post_date'		=> 'published_at',
-					'post_excerpt'	=> 'author',
-					'post_title'	=> 'title',
-					'post_excerpt'	=> 'summary',
-					'post_content'	=> 'body',
-					'comment_status'=>'commentable',									
-					'comment_count'	=>'comments_count',						
-			));
-
-			$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
-			$remaped_post['likeable'] = 0;
-			$remaped_post['likes_count'] = 0;
-			$remaped_post['link'] = get_permalink($remaped_post['post_id']);
-			$remaped_post['image_url'] = $this->get_first_image($remaped_post['body']);
-			$post_commentable =  ($remaped_post['commentable'] == 'open');
-			
-			$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
-			
-			$remaped_posts[] = $remaped_post; 
-			
-			$paged_posts = $this->add_paging_info($remaped_posts,$params);
+		foreach($posts as $post) {					
+			$remaped_posts[] = $this->get_post($post,$params); 
 		}
+		$paged_posts = $this->add_paging_info($remaped_posts,$params);
 		
 		return $paged_posts;
 	}
+	
+	private function get_post($post,$params) {
+		
+		$is_user_logged_in = isset($params['session_id']);
+		$is_reqistration_required = ('1' == get_option('comment_registration'));
+		
+		$remaped_post = $this->array_remap_keys($post, 
+		array (
+				'ID'			=> 'post_id',
+				'post_date'		=> 'published_at',				
+				'post_title'	=> 'title',
+				'post_excerpt'	=> 'summary',
+				'post_content'	=> 'body',
+				'comment_status'=>'commentable',									
+				'comment_count'	=>'comments_count',						
+		));
+
+		$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
+		$remaped_post['likeable'] = 0;
+		$remaped_post['likes_count'] = 0;
+		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
+		$remaped_post['image_url'] = $this->get_first_image($remaped_post['body']);
+		$post_commentable =  ($remaped_post['commentable'] == 'open');
+		
+		$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
+		
+		$remaped_posts[] = $remaped_post; 
+		return $remaped_post;
+	}
+	
 	
 	private function get_first_image($data) {
 		if(preg_match('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i',$data,$matches) > 0) {

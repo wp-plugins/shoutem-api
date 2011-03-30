@@ -27,52 +27,27 @@ function shoutem_api_comment_flood_trigger() {
 class ShoutemPostsCommentsDao extends ShoutemDao {
 
 	public function get($params) {
-		global $wpdb;
-		
-		$query = $wpdb->prepare("
-			SELECT
-				c.comment_ID comment_id,
-				IFNULL(u.user_nicename, c.comment_author) author,
-				IFNULL(u.user_url, c.comment_author_url) author_url,
-				IFNULL(u.user_email, c.comment_author_email) author_image_url,
-				c.comment_date published_at,
-				c.comment_content message,
-				0 'likeable',
-				0 'likes_count',
-				0 'deletable'
-			FROM $wpdb->comments as c
-			LEFT JOIN $wpdb->users as u 
-				ON u.ID = c.user_id
-			WHERE c.comment_approved = 1 AND
-				c.comment_post_ID = %d AND
-				c.comment_ID = %d
-			", $params['post_id'], $params['comment_id']);
-		
-		return $this->get_by_sql($query);
+		$wp_comment = get_comment($params['comment_id']);
+		return $this->get_comment($wp_comment);
 	}
-	
+
 	public function find($params) {
-		global $wpdb;
 		
-		$query = $wpdb->prepare("
-			SELECT
-				c.comment_ID comment_id,
-				IFNULL(u.user_nicename, c.comment_author) author,
-				IFNULL(u.user_url, c.comment_author_url) author_url,
-				IFNULL(u.user_email, c.comment_author_email) author_image_url,
-				c.comment_date published_at,
-				c.comment_content message,
-				0 'likeable',
-				0 'likes_count',
-				0 'deletable'		
-			FROM $wpdb->comments as c
-			LEFT JOIN $wpdb->users as u 
-				ON u.ID = c.user_id
-			WHERE c.comment_approved = 1 AND
-				c.comment_post_ID = %d
-			", $params['post_id']);
-		
-		return $this->find_by_sql($query, $params);
+		$limit = $params['limit'];
+		$offset = $params['offset'];
+		$wp_comments = get_comments(array(
+			'post_id' 	=> $params['post_id'],
+			'number'  	=> $offset + $limit + 1,
+			'order'		=> 'ASC'
+		));
+				
+		//needed since get_comments does not support offset, limit params
+		$wp_comments = array_slice($wp_comments, $offset,$limit + 1);		
+		$result = array();
+		foreach ($wp_comments as $wp_comment) {
+			$result[] = $this->get_comment($wp_comment);
+		}
+		return $this->add_paging_info($result,$params);		 
 	}
 	
 	/**
@@ -116,25 +91,31 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 	
 	
 	public function delete($record) {
-		
-		global $wpdb;
-		
-		$query = $wpdb->prepare("
-			SELECT comment_ID 
-			FROM $wpdb->comments
-			WHERE comment_ID = %d AND
-				comment_post_ID = %d AND
-				user_id = %d
-			LIMIT 1
-			", $record['comment_id'], 
-			$record['post_id'], 
-			$record['user_id']);
-			
-		if($wpdb->query($query) === false) {
-			throw new ShoutemApiException("comment_delete_error");
-		}
-		
 		return wp_delete_comment($record['comment_id'],true);
+	}
+	
+	private function get_comment($wp_comment) {
+		
+		$remaped_comment = $this->array_remap_keys($wp_comment, 
+		array (
+				'comment_ID'			=> 'comment_id',
+				'comment_author'		=> 'author',				
+				'comment_author_url'	=> 'author_url',
+				'comment_author_email'	=> 'author_image_url',
+				'comment_date'			=> 'published_at',
+				'comment_content'		=> 'message',									
+		));
+		$remaped_comment['likeable'] = false;
+		$remaped_comment['likes_count'] = 0;
+		$remaped_comment['deletable'] = false;
+		$user_id = $wp_comment->user_id; 
+		if ($user_id > 0) {
+			$user = get_userdata($user_id);
+			$remaped_comment['author'] = $user->user_nicename;
+			$remaped_comment['author_image_url'] = $user->user_email;
+			$remaped_comment['author_url'] = $user->user_url;
+		}
+		return $remaped_comment;
 	}
 	
 }

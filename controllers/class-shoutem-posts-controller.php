@@ -35,8 +35,8 @@ class ShoutemPostsController extends ShoutemController {
 		$this->request->use_default_params($this->default_paging_params());
 		
 		$dao = $this->dao_factory->get_posts_dao();
-		$data = $dao->categories($this->request->params);
 		
+		$data = $dao->categories($this->request->params);
 		$this->view->show_recordset($data);
 	}
 	

@@ -23,7 +23,7 @@ class ShoutemPostsCommentsController extends ShoutemController {
 		
 		$dao = $this->dao_factory->get_posts_comments_dao();
 		$data = $dao->get($this->request->params);
-		
+				
 		$this->view->show_record($data);
 	}
 	
@@ -32,9 +32,6 @@ class ShoutemPostsCommentsController extends ShoutemController {
 		$this->request->use_default_params($this->default_paging_params());
 		
 		$params = $this->request->params;
-		if(isset($params['session_id'])) {
-			$params['user'] = $this->request->credentials->get_user();
-		}
 		$dao = $this->dao_factory->get_posts_comments_dao();
 		$result = $dao->find($params);
 		$this->view->show_recordset($result);
