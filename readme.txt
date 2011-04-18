@@ -10,7 +10,7 @@ ShoutEm API Wordpress plugin allows you to seamlessly turn your website into a f
 
 ShoutEm is a web platform that allows you to turn your website into a full-featured mobile app in minutes. Integrate content from your Wordpress site with RSS feeds, YouTube videos, podcasts to have all your content available in a single app! Structure your feeds into categories, promote certain categories on your home screen, and build a full-featured browsing app for your users. Users will be able to comment, like and share your content to Facebook, Twitter and Foursquare with links that lead back to your website and help build traffic. ShoutEm Mobile App Builder offers a simple and affordable way for anyone to have a mobile app in iTunes AppStore and Android Marketplace in no time, so check it out!
 
-<iframe title="YouTube video player" width="640" height="390" src="http://www.youtube.com/embed/daD6GgRGDBg" frameborder="0" allowfullscreen></iframe>
+http://www.youtube.com/watch?v=daD6GgRGDBg
 
 ShoutEm API Wordpress plugin serves as a connector between your Wordpress site and the mobile application build on ShoutEm. It exposes a REST API that allows your users to read blog posts from your site and comment them directly from your mobile application.
 
