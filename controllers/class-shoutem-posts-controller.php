@@ -23,20 +23,28 @@ class ShoutemPostsController extends ShoutemController {
 	 * OPT PARAMS: session_id
 	 */
 	function get() {
+		$params = $this->accept_standard_params_and('post_id');
 		$this->validate_required_params('post_id');
-		
 		$postsDao = $this->dao_factory->get_posts_dao();
-		$data = $postsDao->get($this->request->params);
+		
+		$data = $this->caching->use_cache(
+						array($postsDao,'get'), 
+						$this->request->params
+						);		
 		
 		$this->view->show_record($data);
 	}
 	
-	function categories() {
+	function categories() {	
+		$this->accept_standard_params_and();
 		$this->request->use_default_params($this->default_paging_params());
-		
 		$dao = $this->dao_factory->get_posts_dao();
 		
-		$data = $dao->categories($this->request->params);
+		$data = $this->caching->use_cache(
+						array($dao,'categories'), 
+						$this->request->params
+						);
+						
 		$this->view->show_recordset($data);
 	}
 	
@@ -45,10 +53,14 @@ class ShoutemPostsController extends ShoutemController {
 	 * OPT PARAMS: session_id, category_id, offeset (default 0), limit (default 100)
 	 */
 	function find() {
+		$this->accept_standard_params_and('category_id');
 		$this->request->use_default_params($this->default_paging_params());
 		
 		$postsDao = $this->dao_factory->get_posts_dao();
-		$result = $postsDao->find($this->request->params);
+		$result = $this->caching->use_cache(
+						array($postsDao,'find'), 
+						$this->request->params
+						);
 		
 		$this->view->show_recordset($result);
 	}

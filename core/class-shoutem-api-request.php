@@ -31,6 +31,16 @@ class ShoutemApiRequest {
 		return $users_dao->get_validated_user_from_session_id($params['session_id']);
 	}
 	
+	function filter_params($accepted_params) {
+		$filtered_params = array();
+		foreach($accepted_params as $accepted_param) {
+			if (array_key_exists($accepted_param,$this->params)) {
+				$filtered_params[$accepted_param] = $this->params[$accepted_param];
+			}
+		} 
+		$this->params = $filtered_params;	
+	}
+	
 	function use_default_params($default_params) {
 		$this->params += $default_params;
 	}

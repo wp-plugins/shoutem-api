@@ -1,4 +1,5 @@
 <?php
+
 /*
   Copyright 2011 by ShoutEm, Inc. (www.shoutem.com)
 
@@ -20,12 +21,14 @@ class ShoutemPostsDao extends ShoutemDao {
 	
 	public function get($params) {
 		$wp_post = get_post($params['post_id']);
+		if ($wp_post == null) {
+			throw new ShoutemApiException('invalid_params');
+		}
 		$post = $this->get_post($wp_post,$params);
 		return $post;
 	}
 	
 	public function categories($params) {		
-		
 		$offset = $params['offset'];
 		$limit = $params['limit'];
 				
@@ -85,7 +88,11 @@ class ShoutemPostsDao extends ShoutemDao {
 			$post_args['category'] = $params['category_id']; 	
 		}
 		
-		$posts = get_posts($post_args);				 		
+		$posts = get_posts($post_args);
+			
+		if ($posts == null) {
+			throw new ShoutemApiException('invalid_params');
+		}			 		
 		$remaped_posts = array();
 		foreach($posts as $post) {					
 			$remaped_posts[] = $this->get_post($post,$params); 
@@ -94,7 +101,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		
 		return $paged_posts;
 	}
-	
+		
 	private function get_post($post,$params) {
 		
 		$is_user_logged_in = isset($params['session_id']);
@@ -110,26 +117,30 @@ class ShoutemPostsDao extends ShoutemDao {
 				'comment_status'=>'commentable',									
 				'comment_count'	=>'comments_count',						
 		));
-
+		
+		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));
+		$attachments = array();
+		$remaped_post['body'] = sanitize_html($body,&$attachments);
+		
 		$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
 		$remaped_post['likeable'] = 0;
 		$remaped_post['likes_count'] = 0;
 		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
-		$remaped_post['image_url'] = $this->get_first_image($remaped_post['body']);
+		
+		$remaped_post['attachments'] = $attachments;
+		$remaped_post['image_url'] = '';		
+		
+		$images = $attachments['images'];
+		if (count($images) > 0) {
+			$remaped_post['image_url'] = $images[0]['src'];
+		} 
+		
 		$post_commentable =  ($remaped_post['commentable'] == 'open');
 		
 		$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
 		
 		$remaped_posts[] = $remaped_post; 
 		return $remaped_post;
-	}
-	
-	
-	private function get_first_image($data) {
-		if(preg_match('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i',$data,$matches) > 0) {
-				return $matches[1];
-		} 		
-		return '';
 	}
 	
 	private function get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required) {

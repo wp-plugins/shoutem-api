@@ -18,12 +18,13 @@
 */
 class ShoutemController {
 
-	public function ShoutemController($request, $response, $dao_factory, $authentication) {
+	public function ShoutemController($request, $response, $dao_factory, $authentication, $caching) {
 		$this->request = $request;
-		$this->response = $response;
+		$this->response = $response;		
 		$this->dao_factory = $dao_factory;
 		$this->authentication = $authentication;
-		$this->view = new ShoutemControllerView($request, $response);
+		$this->caching = $caching;
+		$this->view = new ShoutemControllerView($request, $response);		
 	}
 
 	protected function default_paging_params() {
@@ -33,7 +34,23 @@ class ShoutemController {
 		);
 	}
 	
+	public function accept_standard_params_and() {
+		$params = array('session_id','offset','limit','method'); //standard params		
+		foreach(func_get_args() as $accepted_param) {	
+			$params []= $accepted_param;
+		}
+		return $this->request->filter_params($params);		
+	}
+	
 	// validating stuff 
+	
+	public function validate_required_plugins() {
+		foreach(func_get_args() as $required_plugin) {	
+			if (!$this->is_plugin_active($required_plugin)) {
+				$this->response->send_error(400, "Missing required plugin");
+			}
+		}
+	}
 	
 	public function validate_required_params() {
 		foreach(func_get_args() as $required_param) {	
@@ -43,9 +60,7 @@ class ShoutemController {
 		}
 	}
 			
-	// callbacks
-	
-	public function before() {
+	public function validate_request_credentials() {
 		if(isset($_REQUEST['session_id'])) {
 			$session_id = $_REQUEST['session_id'];
 			$credentials = $this->authentication->get_credentials($session_id);
@@ -56,6 +71,23 @@ class ShoutemController {
 				$this->request->credentials = $credentials;
 			}
 		}
+	}
+	
+	private function is_plugin_active($plugin) {		
+		return in_array( $plugin, apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
+	}
+	/**
+	 * Template method to be called before automatically each method
+	 */
+	public function doBefore() {
+		
+	}
+	
+	// callbacks
+	
+	public function before() {
+		$this->validate_request_credentials();
+		$this->doBefore();
 	}
 	
 	public function after() {	

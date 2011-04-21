@@ -35,6 +35,7 @@ function shoutem_api_init() {
 	require_once "$shoutem_api_dir/core/class-shoutem-api.php";
 	require_once "$shoutem_api_dir/core/class-shoutem-api-encryption.php";
 	require_once "$shoutem_api_dir/core/class-shoutem-api-authentication.php";
+	require_once "$shoutem_api_dir/core/class-shoutem-api-caching.php";
 	require_once "$shoutem_api_dir/model/class-shoutem-dao.php";
 	require_once "$shoutem_api_dir/model/class-shoutem-standard-dao-factory.php";
 	require_once "$shoutem_api_dir/core/class-shoutem-api-options.php";
@@ -43,7 +44,7 @@ function shoutem_api_init() {
 	require_once "$shoutem_api_dir/controllers/class-shoutem-controller.php";
 	require_once "$shoutem_api_dir/controllers/class-shoutem-controller-view.php";
 	require_once "$shoutem_api_dir/library/JSON.php";
-	
+	require_once "$shoutem_api_dir/library/shoutem-sanitizer.php";
   	$shoutem_api = new ShoutemApi($shoutem_api_dir);
 }
 

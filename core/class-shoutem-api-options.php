@@ -21,7 +21,8 @@ class ShoutemApiOptions {
 	var $shoutem_options_name = "shoutem_api_options";
 	
 	var $shoutem_default_options = array (
-		'encryption_key'=>'change.me'
+		'encryption_key'=>'change.me',
+		'cache_expiration' => 3600 //1h
 	);
 	
 	public function __construct() {
@@ -59,7 +60,7 @@ class ShoutemApiOptions {
 	 	$encryption_key = $options['encryption_key'];
 	 	if (!empty($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "update-options")) {
 	 		$this->update_options(&$options);
-	 	}
+	 	}	 	
 	 	$this->print_options_page($options);
 		
 	}
@@ -67,6 +68,13 @@ class ShoutemApiOptions {
 	private function update_options(&$options) {
 		if(!empty($_REQUEST['encryption_key'])) {
 			$options['encryption_key'] = $_REQUEST['encryption_key']; 
+		}
+		if(array_key_exists('cache_expiration',$_REQUEST)) {
+			$expiration = $_REQUEST['cache_expiration'];			
+			if (is_numeric($expiration) 
+			&& (int)$expiration >= 0) {
+				$options['cache_expiration'] = $expiration;	
+			}			 
 		}
 		$this->save_options($options);
 	}
@@ -121,15 +129,21 @@ class ShoutemApiOptions {
         					encryption_key_element.setAttribute('value',gen_pass(16,true,true,true,false,true,true,true,false));
         			}
   				</script>
-  				<h3>Encryption Settings</h3>
+  				
     			<form action="options-general.php?page=shoutem-api" method="post">
     				<?php wp_nonce_field('update-options'); ?>
     				<table class="form-table">
       					<tr valign="top">
         				<th scope="row">Shoutem api encryption key</th>
-        				<td><input type="text" id="shoutem_api_encryption_key_input" name="encryption_key" value="<?php echo htmlentities($options['encryption_key']); ?>" size="15" />
+        				<td><input type="text" id="shoutem_api_encryption_key_input" name="encryption_key" value="<?php echo htmlentities($options['encryption_key']); ?>" size="15" />        				
         				<input class="button-primary" type="button" name="generate_random_encryption_key" onClick="generate_random_encryption_key_on_click();" value="<?php _e('Generate') ?>" />
         				</td>
+        				<tr valign="top">
+        				<th scope="row">Cache expiration</th>
+        				<td><input type="text" id="shoutem_api_cache_expiration_input" name="cache_expiration" value="<?php echo htmlentities($options['cache_expiration']); ?>" size="15" />
+        				seconds (0 dissables caching)
+        				</td>
+        				
       				</tr>
     				</table>
     				<?php echo $default_encryption_key_warrning; ?>

@@ -34,7 +34,7 @@ class ShoutemApi {
 		$this->dao_factory = new ShoutemStandardDaoFactory();
 		$this->request = new ShoutemApiRequest($this->dao_factory);
 		$this->response = new ShoutemApiResponse($this->base_dir);
-
+		$this->caching = new ShoutemApiCaching($this->shoutem_options);
 		add_action('template_redirect', array(&$this,'template_redirect'));
 		
 	}
@@ -94,7 +94,8 @@ class ShoutemApi {
 			$this->request, 
 			$this->response,
 			$this->dao_factory,
-			$this->authentication
+			$this->authentication,
+			$this->caching
 		);
 		
 		try {

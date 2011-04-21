@@ -68,6 +68,11 @@ class ShoutemControllerView {
 	
 	protected function format_record_property(&$name, &$value) {
 		
+		if (is_array($value)) {
+			$value = $this->format_record($value);
+			return;
+		}
+		
 		//this is used so that the _ends_with "able" rule is not applied to commentable field, since commentable is 'yes', 'no', 'dissabled'
 		if(strpos($name, "commentable") !== false) {
 			return;
@@ -93,9 +98,11 @@ class ShoutemControllerView {
 			return;
 		}
 		
-		if(strpos($name, "body") !== false) {			
-			$value = do_shortcode($value);
-		}
+		if(string_ends_with($name, "latitude")
+		|| string_ends_with($name, "longitude")) {			
+			$value = (float)$value;
+			return;
+		}		
 		
 		if (string_ends_with($name, "_ids")) {
 			$ids = explode(",", $value);
@@ -106,7 +113,7 @@ class ShoutemControllerView {
 			return;
 		}
 		
-		if (string_ends_with($name, "_at")) {
+		if (string_ends_with($name, "_at") || string_ends_with($name, "time")) {
 			$value = date(DATE_RSS, strtotime($value));
 			return;
 		}
@@ -114,7 +121,7 @@ class ShoutemControllerView {
 		if (is_numeric($value)) {
 			$value = (int)$value;
 			return;
-		} else {
+		} else if (is_string($value)) {
 			$value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
 		}
 	}
@@ -173,8 +180,15 @@ class ShoutemControllerView {
 		return $this->response->send_json_ok($this->format_recordset($data));
 	}
 	
-	public function show_record($data) {		
+	public function show_record($data) {	
 		return $this->response->send_json_ok($this->format_record($data));
+	}
+	
+	private function filter_html($html) {
+		$filtered_html = "";
+		$forbiten_elements = "/<(script|iframe).*?>.*?<\/\1>/ig";
+		
+		return $filtered_html;
 	}
 }
 
