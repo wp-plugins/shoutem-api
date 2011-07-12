@@ -30,7 +30,8 @@ class ShoutemController {
 	protected function default_paging_params() {
 		return array (
 			'offset' => 0,
-			'limit' => 100
+			'limit' => 100,
+			'version' => 1
 		);
 	}
 	
@@ -69,6 +70,7 @@ class ShoutemController {
 				$this->response->send_error(401, "Invalid user credentials");
 			} else {
 				$this->request->credentials = $credentials;
+				$this->request->params['wp_user'] = $credentials->get_user();
 			}
 		}
 	}

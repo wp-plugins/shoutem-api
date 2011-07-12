@@ -28,7 +28,7 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 
 	public function get($params) {
 		$wp_comment = get_comment($params['comment_id']);
-		return $this->get_comment($wp_comment);
+		return $this->get_comment($wp_comment, $params);
 	}
 
 	public function find($params) {
@@ -45,7 +45,7 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		$wp_comments = array_slice($wp_comments, $offset,$limit + 1);		
 		$result = array();
 		foreach ($wp_comments as $wp_comment) {
-			$result[] = $this->get_comment($wp_comment);
+			$result[] = $this->get_comment($wp_comment, $params);
 		}
 		return $this->add_paging_info($result,$params);		 
 	}
@@ -75,14 +75,7 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		}
 		
 		if($comment !== false) {
-			return array(
-				'comment_id' => $comment->comment_ID,
-				'published_at' => $comment->comment_date,
-				'author' => $comment->comment_author,
-				'message' => $comment->comment_content,
-				'likes_count' => 0,
-				'approved' => $comment->comment_approved
-			);	
+			return $this->get_comment($comment, $record);	
 		} else {
 			throw new ShoutemApiException('comment_create_error');
 		}
@@ -94,8 +87,21 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		return wp_delete_comment($record['comment_id'],true);
 	}
 	
-	private function get_comment($wp_comment) {
+	private function is_comment_deletable($wp_comment, $params) {
+		if (!isset($params['wp_user'])) {
+			return false;
+		}
+		$cur_user = $params['wp_user'];
 		
+		//can delete if current user is administrator
+		if (array_key_exists('administrator',$cur_user->wp_capabilities)) {
+			return true;
+		}
+		//can delete if current user created the comment 
+		return $wp_comment->user_id == $cur_user->ID;
+	}
+	
+	private function get_comment($wp_comment, $params) {		
 		$remaped_comment = $this->array_remap_keys($wp_comment, 
 		array (
 				'comment_ID'			=> 'comment_id',
@@ -107,7 +113,7 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		));
 		$remaped_comment['likeable'] = false;
 		$remaped_comment['likes_count'] = 0;
-		$remaped_comment['deletable'] = false;
+		$remaped_comment['deletable'] = $this->is_comment_deletable($wp_comment, $params);
 		$user_id = $wp_comment->user_id; 
 		if ($user_id > 0) {
 			$user = get_userdata($user_id);

@@ -34,7 +34,13 @@ class ShoutemUsersController extends ShoutemController {
 		
 		if ($authenticate_dao->validate_password($user, $this->request->params['password'])) {
 			$session_id = $this->authentication->create_session_id($user);
-			$this->response->send_json(array('session_id' => $session_id));
+			
+			$this->response->send_json(array(
+					'user' => array(
+						'id' => $user->ID
+					),
+					'session_id' => $session_id
+				));
 		} else {
 			$this->response->send_error('401', "Invalid user credentials");
 		}

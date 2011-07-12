@@ -27,6 +27,30 @@ function sanitize_html($html, &$attachments = null) {
 	if (isset($attachments)) {		
 		$attachments = strip_attachments(&$html);
 	}
+	//first try wp_kses for removal of html elements 
+	if (function_exists('wp_kses')) {	
+		$allowed_html = array(
+				'attachment' => array('id'=>array()),
+				'a' => array('href'=>array()),
+				'blockquote' => array(),
+				'h1' => array(),
+				'h2' => array(),
+				'h3' => array(),
+				'h4' => array(),
+				'h5' => array(),
+				'p' => array(),
+				'br' => array(),
+				'b' => array(),
+				'strong' => array(),
+				'em' => array(),
+				'i' => array(),
+				'ul' => array(),
+				'li' => array(),
+				'ol' => array()
+			);
+		return wp_kses($html, $allowed_html);
+	}
+		
 	$forbiden_elements = "/<(script|iframe|object|embed|table).*?>.*?<\/(\\1)>/i";
 	$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
 	

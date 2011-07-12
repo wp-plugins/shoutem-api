@@ -43,6 +43,7 @@ function shoutem_api_init() {
 	require_once "$shoutem_api_dir/core/class-shoutem-api-request.php";
 	require_once "$shoutem_api_dir/controllers/class-shoutem-controller.php";
 	require_once "$shoutem_api_dir/controllers/class-shoutem-controller-view.php";
+	require_once "$shoutem_api_dir/library/aes128.php";
 	require_once "$shoutem_api_dir/library/JSON.php";
 	require_once "$shoutem_api_dir/library/shoutem-sanitizer.php";
   	$shoutem_api = new ShoutemApi($shoutem_api_dir);

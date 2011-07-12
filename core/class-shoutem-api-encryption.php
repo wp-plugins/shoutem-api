@@ -31,6 +31,20 @@ class DummyEncryptor {
 	}
 }
 
+class AesEncryptor {
+	
+	function __construct() {		
+	}
+	
+	function encrypt($data, $key) {
+		return AesCtr::encrypt($data, $key, 128);
+	}
+	
+	function decrypt($data, $key) {
+		return AesCtr::decrypt($data, $key, 128);
+	}
+}
+
 class MyCryptEncryptor {
 	
 	function __construct() {
@@ -62,10 +76,9 @@ class ShoutemApiEncryption {
 		
 		if(function_exists('mcrypt_list_algorithms')) {			
 			$this->encryptor = new MyCryptEncryptor();
-		} else {
-			$this->encryptor = new DummyEncryptor();
+		} else {			
+			$this->encryptor = new AesEncryptor();
 		}
-		
 		
 	}
 	
