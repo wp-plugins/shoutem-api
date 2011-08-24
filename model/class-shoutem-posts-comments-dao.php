@@ -38,7 +38,8 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		$wp_comments = get_comments(array(
 			'post_id' 	=> $params['post_id'],
 			'number'  	=> $offset + $limit + 1,
-			'order'		=> 'ASC'
+			'order'		=> 'ASC',
+			'status'	=> 'approved'
 		));
 				
 		//needed since get_comments does not support offset, limit params
