@@ -121,8 +121,8 @@ class ShoutemControllerView {
 		if (is_numeric($value)) {
 			$value = (int)$value;
 			return;
-		} else if (is_string($value)) {
-			$value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+		} else if (is_string($value)) {			
+			//$value = html_entity_decode($value, ENT_QUOTES, 'UTF-8'); //why was this added			
 		}
 	}
 		

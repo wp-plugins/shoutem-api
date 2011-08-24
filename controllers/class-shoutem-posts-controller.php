@@ -30,8 +30,8 @@ class ShoutemPostsController extends ShoutemController {
 		$data = $this->caching->use_cache(
 						array($postsDao,'get'), 
 						$this->request->params
-						);		
-		
+						);
+								
 		$this->view->show_record($data);
 	}
 	
@@ -60,8 +60,7 @@ class ShoutemPostsController extends ShoutemController {
 		$result = $this->caching->use_cache(
 						array($postsDao,'find'), 
 						$this->request->params
-						);
-		
+						);		
 		$this->view->show_recordset($result);
 	}
 }
