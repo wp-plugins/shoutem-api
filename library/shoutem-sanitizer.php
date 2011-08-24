@@ -26,11 +26,13 @@
 function sanitize_html($html, &$attachments = null) {
 	if (isset($attachments)) {		
 		$attachments = strip_attachments(&$html);
-	}
+	}	
+	$filtered_html = "";
 	//first try wp_kses for removal of html elements 
 	if (function_exists('wp_kses')) {	
 		$allowed_html = array(
 				'attachment' => array('id'=>array()),
+				'seattachment' => array('id'=>array()),
 				'a' => array('href'=>array()),
 				'blockquote' => array(),
 				'h1' => array(),
@@ -48,15 +50,23 @@ function sanitize_html($html, &$attachments = null) {
 				'li' => array(),
 				'ol' => array()
 			);
-		return wp_kses($html, $allowed_html);
-	}
-		
-	$forbiden_elements = "/<(script|iframe|object|embed|table).*?>.*?<\/(\\1)>/i";
-	$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
+		$filtered_html = wp_kses($html, $allowed_html);
+	} else {
+		$forbiden_elements = "/<(script|iframe|object|embed|table).*?>.*?<\/(\\1)>/i";
+		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
 	
-	$filtered_html = preg_replace($forbiden_elements, "",$html);
-	$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
-	//$filtered_html = preg_replace("/([\n\r]\s?)+/i","<br/>",$filtered_html);
+		$filtered_html = preg_replace($forbiden_elements, "",$html);
+		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
+		//$filtered_html = preg_replace("/([\n\r]\s?)+/i","<br/>",$filtered_html);
+	}
+
+	/*
+	 * This is needed because wp_kses always removes 'se-attachment' or 'se:attachment' tag regardles of $allowed_html parameter.
+	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
+	 * Here, seattachment label is replaced with the proper label
+	 */  
+	$filtered_html = str_replace("<seattachment","<se-attachment",$filtered_html);
+	
 	return $filtered_html;
 }
 
@@ -89,7 +99,7 @@ function strip_images(&$html) {
 				'title' => ''
 			));
 			$images []= $image;	
-			$html = str_replace($imageTag,"<se-attachment id='$id'/>",$html);
+			$html = str_replace($imageTag,"<seattachment id='$id'/>",$html);
 		}
 	} 		
 	return $images;
@@ -111,7 +121,36 @@ function strip_videos(&$html) {
 			if (strpos($tag_attr['src'],'youtube') >= 0) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<se-attachment id='$id'/>",$html);
+				$html = str_replace($matches[0][$index],"<seattachment id='$id'/>",$html);
+			}
+		} 
+	}
+	
+	if(preg_match_all('/<(iframe.*?)>/i',$html,$matches) > 0) {
+		
+		foreach($matches[1] as $index => $video) {			
+			$tag_attr = get_tag_attr($video, array(
+					'id' => 'video-'.$index,
+					'attachment-type' => 'video',
+					'src' => '',
+					'width' => '',
+					'height' => '',						
+					'provider' => 'youtube'
+					));
+					
+			//youtube video				
+			if (strpos($tag_attr['src'],'youtube') !== false) {
+				$videos []= $tag_attr;
+				$id = $tag_attr['id'];
+				$html = str_replace($matches[0][$index],"<seattachment id='$id'/>",$html);								
+			}
+			
+			//vimeo video
+			if (strpos($tag_attr['src'],'vimeo') !== false) {
+				$tag_attr['provider'] = 'vimeo';
+				$videos []= $tag_attr;
+				$id = $tag_attr['id'];				
+				$html = str_replace($matches[0][$index],"<seattachment id='$id'/>",$html);								
 			}
 		} 
 	}
@@ -139,7 +178,7 @@ function get_tag_attr($tag, $defaults = array()) {
  */
 function filter_tag($opening, $name, $attr, $closing) {
 	
-	$allow_tags = array('se-attachment','a','blockquote','h1','h2','h3','h4','h5',
+	$allow_tags = array('se-attachment','seattachment','se:attachment','a','blockquote','h1','h2','h3','h4','h5',
 						'p','br','b','strong','em','i','a','ul','li','ol');
 	if(!in_array($name, $allow_tags)) {
 		return '';	
