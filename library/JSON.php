@@ -45,7 +45,7 @@
  * DAMAGE.
  *
  * @category
- * @package     Services_JSON
+ * @package     SEServices_JSON
  * @author      Michal Migurski <mike-json@teczno.com>
  * @author      Matt Knapp <mdknapp[at]gmail[dot]com>
  * @author      Brett Stimmerman <brettstimmerman[at]gmail[dot]com>
@@ -56,39 +56,39 @@
  */
 
 /**
- * Marker constant for Services_JSON::decode(), used to flag stack state
+ * Marker constant for SEServices_JSON::decode(), used to flag stack state
  */
-define('SERVICES_JSON_SLICE',   1);
+define('SESERVICES_JSON_SLICE',   1);
 
 /**
- * Marker constant for Services_JSON::decode(), used to flag stack state
+ * Marker constant for SEServices_JSON::decode(), used to flag stack state
  */
-define('SERVICES_JSON_IN_STR',  2);
+define('SESERVICES_JSON_IN_STR',  2);
 
 /**
- * Marker constant for Services_JSON::decode(), used to flag stack state
+ * Marker constant for SEServices_JSON::decode(), used to flag stack state
  */
-define('SERVICES_JSON_IN_ARR',  3);
+define('SESERVICES_JSON_IN_ARR',  3);
 
 /**
- * Marker constant for Services_JSON::decode(), used to flag stack state
+ * Marker constant for SEServices_JSON::decode(), used to flag stack state
  */
-define('SERVICES_JSON_IN_OBJ',  4);
+define('SESERVICES_JSON_IN_OBJ',  4);
 
 /**
- * Marker constant for Services_JSON::decode(), used to flag stack state
+ * Marker constant for SEServices_JSON::decode(), used to flag stack state
  */
-define('SERVICES_JSON_IN_CMT', 5);
+define('SESERVICES_JSON_IN_CMT', 5);
 
 /**
- * Behavior switch for Services_JSON::decode()
+ * Behavior switch for SEServices_JSON::decode()
  */
-define('SERVICES_JSON_LOOSE_TYPE', 16);
+define('SESERVICES_JSON_LOOSE_TYPE', 16);
 
 /**
- * Behavior switch for Services_JSON::decode()
+ * Behavior switch for SEServices_JSON::decode()
  */
-define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
+define('SESERVICES_JSON_SUPPRESS_ERRORS', 32);
 
 /**
  * Converts to and from JSON format.
@@ -96,8 +96,8 @@ define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
  * Brief example of use:
  *
  * <code>
- * // create a new instance of Services_JSON
- * $json = new Services_JSON();
+ * // create a new instance of SEServices_JSON
+ * $json = new SEServices_JSON();
  *
  * // convert a complexe value to JSON notation, and send it to the browser
  * $value = array('foo', 'bar', array(1, 2, 'baz'), array(3, array(4)));
@@ -111,7 +111,7 @@ define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
  * $value = $json->decode($input);
  * </code>
  */
-class Services_JSON
+class SEServices_JSON
 {
    /**
     * constructs a new JSON instance
@@ -119,17 +119,17 @@ class Services_JSON
     * @param    int     $use    object behavior flags; combine with boolean-OR
     *
     *                           possible values:
-    *                           - SERVICES_JSON_LOOSE_TYPE:  loose typing.
+    *                           - SESERVICES_JSON_LOOSE_TYPE:  loose typing.
     *                                   "{...}" syntax creates associative arrays
     *                                   instead of objects in decode().
-    *                           - SERVICES_JSON_SUPPRESS_ERRORS:  error suppression.
+    *                           - SESERVICES_JSON_SUPPRESS_ERRORS:  error suppression.
     *                                   Values which can't be encoded (e.g. resources)
     *                                   appear as NULL instead of throwing errors.
     *                                   By default, a deeply-nested resource will
     *                                   bubble up with an error, so all return values
     *                                   from encode() should be checked with isError()
     */
-    function Services_JSON($use = 0)
+    function SEServices_JSON($use = 0)
     {
         $this->use = $use;
     }
@@ -226,7 +226,7 @@ class Services_JSON
     * encodes an arbitrary variable into JSON format (and sends JSON Header)
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
+    *                           see argument 1 to SEServices_JSON() above for array-parsing behavior.
     *                           if var is a strng, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
@@ -242,7 +242,7 @@ class Services_JSON
     * encodes an arbitrary variable into JSON format without JSON Header - warning - may allow CSS!!!!)
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
+    *                           see argument 1 to SEServices_JSON() above for array-parsing behavior.
     *                           if var is a strng, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
@@ -257,7 +257,7 @@ class Services_JSON
     * PRIVATE CODE that does the work of encodes an arbitrary variable into JSON format 
     *
     * @param    mixed   $var    any number, boolean, string, array, or object to be encoded.
-    *                           see argument 1 to Services_JSON() above for array-parsing behavior.
+    *                           see argument 1 to SEServices_JSON() above for array-parsing behavior.
     *                           if var is a strng, note that encode() always expects it
     *                           to be in ASCII or UTF-8 format!
     *
@@ -437,7 +437,7 @@ class Services_JSON
                                             array_values($var));
 
                     foreach($properties as $property) {
-                        if(Services_JSON::isError($property)) {
+                        if(SEServices_JSON::isError($property)) {
                             return $property;
                         }
                     }
@@ -449,7 +449,7 @@ class Services_JSON
                 $elements = array_map(array($this, '_encode'), $var);
 
                 foreach($elements as $element) {
-                    if(Services_JSON::isError($element)) {
+                    if(SEServices_JSON::isError($element)) {
                         return $element;
                     }
                 }
@@ -464,7 +464,7 @@ class Services_JSON
                                         array_values($vars));
 
                 foreach($properties as $property) {
-                    if(Services_JSON::isError($property)) {
+                    if(SEServices_JSON::isError($property)) {
                         return $property;
                     }
                 }
@@ -472,9 +472,9 @@ class Services_JSON
                 return '{' . join(',', $properties) . '}';
 
             default:
-                return ($this->use & SERVICES_JSON_SUPPRESS_ERRORS)
+                return ($this->use & SESERVICES_JSON_SUPPRESS_ERRORS)
                     ? 'null'
-                    : new Services_JSON_Error(gettype($var)." can not be encoded as JSON string");
+                    : new SEServices_JSON_Error(gettype($var)." can not be encoded as JSON string");
         }
     }
 
@@ -491,7 +491,7 @@ class Services_JSON
     {
         $encoded_value = $this->_encode($value);
 
-        if(Services_JSON::isError($encoded_value)) {
+        if(SEServices_JSON::isError($encoded_value)) {
             return $encoded_value;
         }
 
@@ -532,7 +532,7 @@ class Services_JSON
     *
     * @return   mixed   number, boolean, string, array, or object
     *                   corresponding to given JSON input string.
-    *                   See argument 1 to Services_JSON() above for object-output behavior.
+    *                   See argument 1 to SEServices_JSON() above for object-output behavior.
     *                   Note that decode() always returns strings
     *                   in ASCII or UTF-8 format!
     * @access   public
@@ -667,19 +667,19 @@ class Services_JSON
                     // array, or object notation
 
                     if ($str{0} == '[') {
-                        $stk = array(SERVICES_JSON_IN_ARR);
+                        $stk = array(SESERVICES_JSON_IN_ARR);
                         $arr = array();
                     } else {
-                        if ($this->use & SERVICES_JSON_LOOSE_TYPE) {
-                            $stk = array(SERVICES_JSON_IN_OBJ);
+                        if ($this->use & SESERVICES_JSON_LOOSE_TYPE) {
+                            $stk = array(SESERVICES_JSON_IN_OBJ);
                             $obj = array();
                         } else {
-                            $stk = array(SERVICES_JSON_IN_OBJ);
+                            $stk = array(SESERVICES_JSON_IN_OBJ);
                             $obj = new stdClass();
                         }
                     }
 
-                    array_push($stk, array('what'  => SERVICES_JSON_SLICE,
+                    array_push($stk, array('what'  => SESERVICES_JSON_SLICE,
                                            'where' => 0,
                                            'delim' => false));
 
@@ -687,7 +687,7 @@ class Services_JSON
                     $chrs = $this->reduce_string($chrs);
 
                     if ($chrs == '') {
-                        if (reset($stk) == SERVICES_JSON_IN_ARR) {
+                        if (reset($stk) == SESERVICES_JSON_IN_ARR) {
                             return $arr;
 
                         } else {
@@ -705,18 +705,18 @@ class Services_JSON
                         $top = end($stk);
                         $substr_chrs_c_2 = substr($chrs, $c, 2);
 
-                        if (($c == $strlen_chrs) || (($chrs{$c} == ',') && ($top['what'] == SERVICES_JSON_SLICE))) {
+                        if (($c == $strlen_chrs) || (($chrs{$c} == ',') && ($top['what'] == SESERVICES_JSON_SLICE))) {
                             // found a comma that is not inside a string, array, etc.,
                             // OR we've reached the end of the character list
                             $slice = substr($chrs, $top['where'], ($c - $top['where']));
-                            array_push($stk, array('what' => SERVICES_JSON_SLICE, 'where' => ($c + 1), 'delim' => false));
+                            array_push($stk, array('what' => SESERVICES_JSON_SLICE, 'where' => ($c + 1), 'delim' => false));
                             //print("Found split at {$c}: ".substr($chrs, $top['where'], (1 + $c - $top['where']))."\n");
 
-                            if (reset($stk) == SERVICES_JSON_IN_ARR) {
+                            if (reset($stk) == SESERVICES_JSON_IN_ARR) {
                                 // we are in an array, so just push an element onto the stack
                                 array_push($arr, $this->decode($slice));
 
-                            } elseif (reset($stk) == SERVICES_JSON_IN_OBJ) {
+                            } elseif (reset($stk) == SESERVICES_JSON_IN_OBJ) {
                                 // we are in an object, so figure
                                 // out the property name and set an
                                 // element in an associative array,
@@ -728,7 +728,7 @@ class Services_JSON
                                     $key = $this->decode($parts[1]);
                                     $val = $this->decode($parts[2]);
 
-                                    if ($this->use & SERVICES_JSON_LOOSE_TYPE) {
+                                    if ($this->use & SESERVICES_JSON_LOOSE_TYPE) {
                                         $obj[$key] = $val;
                                     } else {
                                         $obj->$key = $val;
@@ -738,7 +738,7 @@ class Services_JSON
                                     $key = $parts[1];
                                     $val = $this->decode($parts[2]);
 
-                                    if ($this->use & SERVICES_JSON_LOOSE_TYPE) {
+                                    if ($this->use & SESERVICES_JSON_LOOSE_TYPE) {
                                         $obj[$key] = $val;
                                     } else {
                                         $obj->$key = $val;
@@ -747,13 +747,13 @@ class Services_JSON
 
                             }
 
-                        } elseif ((($chrs{$c} == '"') || ($chrs{$c} == "'")) && ($top['what'] != SERVICES_JSON_IN_STR)) {
+                        } elseif ((($chrs{$c} == '"') || ($chrs{$c} == "'")) && ($top['what'] != SESERVICES_JSON_IN_STR)) {
                             // found a quote, and we are not inside a string
-                            array_push($stk, array('what' => SERVICES_JSON_IN_STR, 'where' => $c, 'delim' => $chrs{$c}));
+                            array_push($stk, array('what' => SESERVICES_JSON_IN_STR, 'where' => $c, 'delim' => $chrs{$c}));
                             //print("Found start of string at {$c}\n");
 
                         } elseif (($chrs{$c} == $top['delim']) &&
-                                 ($top['what'] == SERVICES_JSON_IN_STR) &&
+                                 ($top['what'] == SESERVICES_JSON_IN_STR) &&
                                  ((strlen(substr($chrs, 0, $c)) - strlen(rtrim(substr($chrs, 0, $c), '\\'))) % 2 != 1)) {
                             // found a quote, we're in a string, and it's not escaped
                             // we know that it's not escaped becase there is _not_ an
@@ -762,35 +762,35 @@ class Services_JSON
                             //print("Found end of string at {$c}: ".substr($chrs, $top['where'], (1 + 1 + $c - $top['where']))."\n");
 
                         } elseif (($chrs{$c} == '[') &&
-                                 in_array($top['what'], array(SERVICES_JSON_SLICE, SERVICES_JSON_IN_ARR, SERVICES_JSON_IN_OBJ))) {
+                                 in_array($top['what'], array(SESERVICES_JSON_SLICE, SESERVICES_JSON_IN_ARR, SESERVICES_JSON_IN_OBJ))) {
                             // found a left-bracket, and we are in an array, object, or slice
-                            array_push($stk, array('what' => SERVICES_JSON_IN_ARR, 'where' => $c, 'delim' => false));
+                            array_push($stk, array('what' => SESERVICES_JSON_IN_ARR, 'where' => $c, 'delim' => false));
                             //print("Found start of array at {$c}\n");
 
-                        } elseif (($chrs{$c} == ']') && ($top['what'] == SERVICES_JSON_IN_ARR)) {
+                        } elseif (($chrs{$c} == ']') && ($top['what'] == SESERVICES_JSON_IN_ARR)) {
                             // found a right-bracket, and we're in an array
                             array_pop($stk);
                             //print("Found end of array at {$c}: ".substr($chrs, $top['where'], (1 + $c - $top['where']))."\n");
 
                         } elseif (($chrs{$c} == '{') &&
-                                 in_array($top['what'], array(SERVICES_JSON_SLICE, SERVICES_JSON_IN_ARR, SERVICES_JSON_IN_OBJ))) {
+                                 in_array($top['what'], array(SESERVICES_JSON_SLICE, SESERVICES_JSON_IN_ARR, SESERVICES_JSON_IN_OBJ))) {
                             // found a left-brace, and we are in an array, object, or slice
-                            array_push($stk, array('what' => SERVICES_JSON_IN_OBJ, 'where' => $c, 'delim' => false));
+                            array_push($stk, array('what' => SESERVICES_JSON_IN_OBJ, 'where' => $c, 'delim' => false));
                             //print("Found start of object at {$c}\n");
 
-                        } elseif (($chrs{$c} == '}') && ($top['what'] == SERVICES_JSON_IN_OBJ)) {
+                        } elseif (($chrs{$c} == '}') && ($top['what'] == SESERVICES_JSON_IN_OBJ)) {
                             // found a right-brace, and we're in an object
                             array_pop($stk);
                             //print("Found end of object at {$c}: ".substr($chrs, $top['where'], (1 + $c - $top['where']))."\n");
 
                         } elseif (($substr_chrs_c_2 == '/*') &&
-                                 in_array($top['what'], array(SERVICES_JSON_SLICE, SERVICES_JSON_IN_ARR, SERVICES_JSON_IN_OBJ))) {
+                                 in_array($top['what'], array(SESERVICES_JSON_SLICE, SESERVICES_JSON_IN_ARR, SESERVICES_JSON_IN_OBJ))) {
                             // found a comment start, and we are in an array, object, or slice
-                            array_push($stk, array('what' => SERVICES_JSON_IN_CMT, 'where' => $c, 'delim' => false));
+                            array_push($stk, array('what' => SESERVICES_JSON_IN_CMT, 'where' => $c, 'delim' => false));
                             $c++;
                             //print("Found start of comment at {$c}\n");
 
-                        } elseif (($substr_chrs_c_2 == '*/') && ($top['what'] == SERVICES_JSON_IN_CMT)) {
+                        } elseif (($substr_chrs_c_2 == '*/') && ($top['what'] == SESERVICES_JSON_IN_CMT)) {
                             // found a comment end, and we're in one now
                             array_pop($stk);
                             $c++;
@@ -804,10 +804,10 @@ class Services_JSON
 
                     }
 
-                    if (reset($stk) == SERVICES_JSON_IN_ARR) {
+                    if (reset($stk) == SESERVICES_JSON_IN_ARR) {
                         return $arr;
 
-                    } elseif (reset($stk) == SERVICES_JSON_IN_OBJ) {
+                    } elseif (reset($stk) == SESERVICES_JSON_IN_OBJ) {
                         return $obj;
 
                     }
@@ -834,9 +834,9 @@ class Services_JSON
 
 if (class_exists('PEAR_Error')) {
 
-    class Services_JSON_Error extends PEAR_Error
+    class SEServices_JSON_Error extends PEAR_Error
     {
-        function Services_JSON_Error($message = 'unknown error', $code = null,
+        function SEServices_JSON_Error($message = 'unknown error', $code = null,
                                      $mode = null, $options = null, $userinfo = null)
         {
             parent::PEAR_Error($message, $code, $mode, $options, $userinfo);
@@ -848,9 +848,9 @@ if (class_exists('PEAR_Error')) {
     /**
      * @todo Ultimately, this class shall be descended from PEAR_Error
      */
-    class Services_JSON_Error
+    class SEServices_JSON_Error
     {
-        function Services_JSON_Error($message = 'unknown error', $code = null,
+        function SEServices_JSON_Error($message = 'unknown error', $code = null,
                                      $mode = null, $options = null, $userinfo = null)
         {
 

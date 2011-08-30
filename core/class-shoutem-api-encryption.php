@@ -37,11 +37,11 @@ class AesEncryptor {
 	}
 	
 	function encrypt($data, $key) {
-		return AesCtr::encrypt($data, $key, 128);
+		return SEAesCtr::encrypt($data, $key, 128);
 	}
 	
 	function decrypt($data, $key) {
-		return AesCtr::decrypt($data, $key, 128);
+		return SEAesCtr::decrypt($data, $key, 128);
 	}
 }
 

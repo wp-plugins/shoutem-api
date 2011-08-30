@@ -4,7 +4,7 @@
 /*    commercial or non-commercial use under CC-BY licence. No warranty of any form is offered.   */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
   
-class Aes {
+class SEAes {
   
   /**
    * AES Cipher function: encrypt 'input' with Rijndael algorithm
@@ -169,7 +169,7 @@ class Aes {
 /*    form is offered.                                                                            */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
   
-class AesCtr extends Aes {
+class SEAesCtr extends SEAes {
   
   /** 
    * Encrypt a text using AES encryption in Counter mode of operation
@@ -192,7 +192,7 @@ class AesCtr extends Aes {
     $nBytes = $nBits/8;  // no bytes in key
     $pwBytes = array();
     for ($i=0; $i<$nBytes; $i++) $pwBytes[$i] = ord(substr($password,$i,1)) & 0xff;
-    $key = Aes::cipher($pwBytes, Aes::keyExpansion($pwBytes));
+    $key = SEAes::cipher($pwBytes, SEAes::keyExpansion($pwBytes));
     $key = array_merge($key, array_slice($key, 0, $nBytes-16));  // expand key to 16/24/32 bytes long 
   
     // initialise 1st 8 bytes of counter block with nonce (NIST SP800-38A §B.2): [0-1] = millisec, 
@@ -212,7 +212,7 @@ class AesCtr extends Aes {
     for ($i=0; $i<8; $i++) $ctrTxt .= chr($counterBlock[$i]);
   
     // generate key schedule - an expansion of the key into distinct Key Rounds for each round
-    $keySchedule = Aes::keyExpansion($key);
+    $keySchedule = SEAes::keyExpansion($key);
     //print_r($keySchedule);
     
     $blockCount = ceil(strlen($plaintext)/$blockSize);
@@ -224,7 +224,7 @@ class AesCtr extends Aes {
       for ($c=0; $c<4; $c++) $counterBlock[15-$c] = self::urs($b, $c*8) & 0xff;
       for ($c=0; $c<4; $c++) $counterBlock[15-$c-4] = self::urs($b/0x100000000, $c*8);
   
-      $cipherCntr = Aes::cipher($counterBlock, $keySchedule);  // -- encrypt counter block --
+      $cipherCntr = SEAes::cipher($counterBlock, $keySchedule);  // -- encrypt counter block --
   
       // block size is reduced on final block
       $blockLength = $b<$blockCount-1 ? $blockSize : (strlen($plaintext)-1)%$blockSize+1;
@@ -261,7 +261,7 @@ class AesCtr extends Aes {
     $nBytes = $nBits/8;  // no bytes in key
     $pwBytes = array();
     for ($i=0; $i<$nBytes; $i++) $pwBytes[$i] = ord(substr($password,$i,1)) & 0xff;
-    $key = Aes::cipher($pwBytes, Aes::keyExpansion($pwBytes));
+    $key = SEAes::cipher($pwBytes, SEAes::keyExpansion($pwBytes));
     $key = array_merge($key, array_slice($key, 0, $nBytes-16));  // expand key to 16/24/32 bytes long
     
     // recover nonce from 1st element of ciphertext
@@ -270,7 +270,7 @@ class AesCtr extends Aes {
     for ($i=0; $i<8; $i++) $counterBlock[$i] = ord(substr($ctrTxt,$i,1));
     
     // generate key schedule
-    $keySchedule = Aes::keyExpansion($key);
+    $keySchedule = SEAes::keyExpansion($key);
   
     // separate ciphertext into blocks (skipping past initial 8 bytes)
     $nBlocks = ceil((strlen($ciphertext)-8) / $blockSize);
@@ -286,7 +286,7 @@ class AesCtr extends Aes {
       for ($c=0; $c<4; $c++) $counterBlock[15-$c] = self::urs($b, $c*8) & 0xff;
       for ($c=0; $c<4; $c++) $counterBlock[15-$c-4] = self::urs(($b+1)/0x100000000-1, $c*8) & 0xff;
   
-      $cipherCntr = Aes::cipher($counterBlock, $keySchedule);  // encrypt counter block
+      $cipherCntr = SEAes::cipher($counterBlock, $keySchedule);  // encrypt counter block
   
       $plaintxtByte = array();
       for ($i=0; $i<strlen($ciphertext[$b]); $i++) {

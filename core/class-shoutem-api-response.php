@@ -62,9 +62,8 @@ class ShoutemApiResponse {
 	}
 	
 	function encode_json($data) {
-		// Use PEAR's Services_JSON encoder
-  		
-      	$json = new Services_JSON();
+		// Use PEAR's Services_JSON encoder  		
+      	$json = new SEServices_JSON();
       	return $json->encode($data);
 	}
 	
