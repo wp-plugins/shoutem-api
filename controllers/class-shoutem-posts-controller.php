@@ -22,17 +22,28 @@ class ShoutemPostsController extends ShoutemController {
 	 * REQ PARAMS: post_id
 	 * OPT PARAMS: session_id
 	 */
-	function get() {
+	function get() {		
 		$params = $this->accept_standard_params_and('post_id','include_raw_post');
 		$this->validate_required_params('post_id');
-		$postsDao = $this->dao_factory->get_posts_dao();
 		
-		$data = $this->caching->use_cache(
+		
+		$uid = $this->caching->unique_id($this->request->params);
+		$cached = $this->caching->get_cached($uid);
+		if ($cached) {
+			$this->response->send_json($cached);
+		} else {
+			/*$data = $this->caching->use_cache(
 						array($postsDao,'get'), 
 						$this->request->params
 						);
-								
-		$this->view->show_record($data);
+			*/ //don't use caching here, because there will be mutch less requests on get
+			$postsDao = $this->dao_factory->get_posts_dao();
+			$data = $postsDao->get($this->request->params);
+			
+			$json_string = $this->view->encode_record_as_json($data);
+			$this->caching->store_to_cache($uid, $json_string);
+			$this->response->send_json($json_string);
+		}
 	}
 	
 	function categories() {	
@@ -52,16 +63,25 @@ class ShoutemPostsController extends ShoutemController {
 	 * MAPS_TO: posts/find 
 	 * OPT PARAMS: session_id, category_id, offeset (default 0), limit (default 100)
 	 */
-	function find() {
+	function find() {		
 		$this->accept_standard_params_and('category_id');
 		$this->request->use_default_params($this->default_paging_params());
 		
-		$postsDao = $this->dao_factory->get_posts_dao();
-		$result = $this->caching->use_cache(
-						array($postsDao,'find'), 
-						$this->request->params
-						);		
-		$this->view->show_recordset($result);
+		$uid = $this->caching->unique_id($this->request->params);
+		
+		$cached = $this->caching->get_cached($uid);
+		if ($cached) {
+			$this->response->send_json($cached);
+		} else { 
+		
+			$postsDao = $this->dao_factory->get_posts_dao();
+			$result = $postsDao->find($this->request->params);
+			
+			$json_string = $this->view->encode_recordset_as_json($result);
+			$this->caching->store_to_cache($uid, $json_string);
+			$this->response->send_json($json_string);
+		}
+		
 	}
 }
 

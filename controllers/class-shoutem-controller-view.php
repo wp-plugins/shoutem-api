@@ -180,6 +180,14 @@ class ShoutemControllerView {
 		return $this->response->send_json_ok($this->format_recordset($data));
 	}
 	
+	public function encode_record_as_json($data) {
+		return $this->response->encode_json($this->format_record($data));
+	}
+	
+	public function encode_recordset_as_json($data) {
+		return $this->response->encode_json($this->format_recordset($data));
+	}
+	
 	public function show_record($data) {	
 		return $this->response->send_json_ok($this->format_record($data));
 	}

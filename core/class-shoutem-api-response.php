@@ -29,7 +29,12 @@ class ShoutemApiResponse {
 	}
 	
 	function send_json($data) {
-		$json_data = $this->encode_json($data);
+		$json_data = "";
+		if (is_string($data)) {
+			$json_data = $data;	
+		} else {
+			$json_data = $this->encode_json($data);
+		}
 		$charset = get_option('blog_charset');
     	if (!headers_sent()) {
       		header("Content-Type: application/json; charset=$charset", true);

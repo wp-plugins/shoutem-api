@@ -22,6 +22,38 @@ class ShoutemApiCaching {
 		$this->options = $options;
 	}
 	
+	private function is_cache_enabled() {
+		$options = 	$this->options->get_options();	
+		$expiration = $options['cache_expiration'];	
+		
+		if (isset($params['session_id'])) {
+			return false; //don't use for signed in user
+		} else if ($expiration == 0) {
+			return false; //don't use if the user dissabled in options
+		}
+		return true;
+	}
+	
+	public function get_cached($uid) {
+		$cached = false;		
+		$use_cache = $this->is_cache_enabled();		
+		if (!$use_cache) {
+			return false;
+		}
+		
+		$cached = $this->get_from_cache($uid);
+		return $cached;		
+	}
+	
+	public function store_to_cache($uid, $cached) {
+		if ($this->is_cache_enabled() === false) {
+			return false;
+		}
+		$options = 	$this->options->get_options();
+		$expiration = $options['cache_expiration'];
+		$this->set_to_cache($uid, $cached, $expiration);
+	}
+	
 	/**
 	 * Note, this can only be used with shoutem controller methods because it relies on specific naming scheme in params 
 	 * Returnes cached data when found, otherwise calls method and caches result
@@ -55,7 +87,7 @@ class ShoutemApiCaching {
 		return $cached;
 	}	
 	
-	private function unique_id($params) {
+	public function unique_id($params) {
 		ksort($params);
 		
 		if (!array_key_exists('method',$params)) {
