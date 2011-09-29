@@ -24,11 +24,13 @@ Author URI: http://www.shoutem.com
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 function shoutem_api_init() {
 	if (phpversion() < 5) {
     	add_action('admin_notices', 'shoutem_api_php_version_warning');
     	return;
 	}
+	
 	
 	$shoutem_api_dir = dirname(__FILE__);
 	require_once "$shoutem_api_dir/core/class-shoutem-api-exception.php";
@@ -46,7 +48,7 @@ function shoutem_api_init() {
 	require_once "$shoutem_api_dir/library/aes128.php";
 	require_once "$shoutem_api_dir/library/JSON.php";
 	require_once "$shoutem_api_dir/library/shoutem-sanitizer.php";
-  	$shoutem_api = new ShoutemApi($shoutem_api_dir);
+  	$shoutem_api = new ShoutemApi($shoutem_api_dir, __FILE__);
 }
 
 function shoutem_api_php_version_warning() {

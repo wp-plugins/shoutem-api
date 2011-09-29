@@ -17,9 +17,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 class ShoutemServiceController extends ShoutemController {
-	public function info() {
+	public function info() {		
 		$data = array (
-			'api_version' => '1', //TODO don't hardcode this!
+			'api_version' => $this->shoutem_api->api_version,
 			'server_type' => 'wordpress' 
 		);
 		$this->view->show_record($data);

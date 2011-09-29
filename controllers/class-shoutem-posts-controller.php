@@ -23,7 +23,7 @@ class ShoutemPostsController extends ShoutemController {
 	 * OPT PARAMS: session_id
 	 */
 	function get() {
-		$params = $this->accept_standard_params_and('post_id');
+		$params = $this->accept_standard_params_and('post_id','include_raw_post');
 		$this->validate_required_params('post_id');
 		$postsDao = $this->dao_factory->get_posts_dao();
 		

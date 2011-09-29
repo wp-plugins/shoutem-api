@@ -18,7 +18,8 @@
 */
 class ShoutemController {
 
-	public function ShoutemController($request, $response, $dao_factory, $authentication, $caching) {
+	public function ShoutemController($shoutem_api,$request, $response, $dao_factory, $authentication, $caching) {
+		$this->shoutem_api = $shoutem_api;
 		$this->request = $request;
 		$this->response = $response;		
 		$this->dao_factory = $dao_factory;

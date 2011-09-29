@@ -105,6 +105,7 @@ class ShoutemPostsDao extends ShoutemDao {
 	private function get_post($post,$params) {
 		
 		$is_user_logged_in = isset($params['session_id']);
+		$include_raw_post = isset($params['include_raw_post']);
 		$is_reqistration_required = ('1' == get_option('comment_registration'));
 		
 		$remaped_post = $this->array_remap_keys($post, 
@@ -118,7 +119,10 @@ class ShoutemPostsDao extends ShoutemDao {
 				'comment_count'	=>'comments_count',						
 		));
 		
-		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));
+		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));		
+		if ($include_raw_post) {
+			$remaped_post['raw_post'] = $body;
+		}
 		$attachments = array();
 		$remaped_post['body'] = sanitize_html($body,&$attachments);
 		

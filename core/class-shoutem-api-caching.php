@@ -45,10 +45,8 @@ class ShoutemApiCaching {
 			return $method[0]->$method[1]($params);
 		}
 		
-		$uid = $this->unique_id($params);
-
+		$uid = $this->unique_id($params);		
 		$cached = $this->get_from_cache($uid);
-		
 		if ($cached === false) {
 			$cached = $method[0]->$method[1]($params);			
 			$this->set_to_cache($uid, $cached, $expiration);

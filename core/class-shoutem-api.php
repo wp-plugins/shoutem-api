@@ -20,7 +20,7 @@ define ("SHOUTEM_API_SUMMARY_LENGTH", 50);
 
 class ShoutemApi {
 	
-	function __construct($base_dir) {
+	function __construct($base_dir,$shoutem_plugin_file) {
 		
 		
 		$this->base_dir = $base_dir;
@@ -36,6 +36,16 @@ class ShoutemApi {
 		$this->response = new ShoutemApiResponse($this->base_dir);
 		$this->caching = new ShoutemApiCaching($this->shoutem_options);
 		add_action('template_redirect', array(&$this,'template_redirect'));
+		
+		$this->api_version = "unknown";
+		
+		if (!function_exists('get_plugin_data')) {
+			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		}
+		if (function_exists('get_plugin_data')) {  
+			$plugin_data = get_plugin_data($shoutem_plugin_file);
+			$this->api_version = $plugin_data['Version'];
+		}	
 		
 	}
 	
@@ -91,6 +101,7 @@ class ShoutemApi {
 		}
 		
 		$controller = new $controller_class(
+			$this,
 			$this->request, 
 			$this->response,
 			$this->dao_factory,
