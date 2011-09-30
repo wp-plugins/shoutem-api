@@ -101,6 +101,22 @@ class ShoutemPostsDao extends ShoutemDao {
 		
 		return $paged_posts;
 	}
+	
+	
+	public function get_leading_image($post_id) {		
+		//Post thumbnail is the wordpress term for leading-image
+	 	$post_thumbnail = get_the_post_thumbnail($post_id);
+		if ($post_thumbnail) {
+			$images = strip_images($post_thumbnail);
+			if (count($images) > 0) {
+				$image = $images[0];
+				$image['id'] = "";
+				return $image;
+			}					
+		} 
+		return false;
+		
+	}
 		
 	private function get_post($post,$params) {
 		
@@ -129,7 +145,16 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
 		$remaped_post['likeable'] = 0;
 		$remaped_post['likes_count'] = 0;
-		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
+		//$remaped_post['link'] = get_permalink($remaped_post['post_id']);
+		
+		$leading_image = $this->get_leading_image($remaped_post['post_id']);		
+		$leading_image = apply_filters('shoutem_leading_image',$leading_image,$remaped_post['post_id']);
+		
+		
+		if ($leading_image) {
+			$leading_image['attachment-type'] = "leading_image";			
+			array_unshift($attachments['images'],$leading_image);
+		} 
 		
 		$remaped_post['attachments'] = $attachments;
 		$remaped_post['image_url'] = '';		
