@@ -27,12 +27,14 @@ function sanitize_html($html, &$attachments = null) {
 	if (isset($attachments)) {		
 		$attachments = strip_attachments(&$html);
 	}	
+	
 	$filtered_html = "";
-	$forbiden_elements = "/<(style|script|iframe|object|embed|table).*?>.*?<\/(\\1)>/i";
+	$forbiden_elements = "/<(style|script|iframe|object|embed|table).*?>.*?<\/(\\1)>/si";
 	//first try wp_kses for removal of html elements 
 	if (function_exists('wp_kses')) {				
+		
 		$filtered_html = preg_replace($forbiden_elements, "",$html);
-
+		
 		$allowed_html = array(
 				'attachment' => array('id'=>true,'type'=>true,'xmlns'=>true),
 				'a' => array('href'=>true),
@@ -109,7 +111,7 @@ function strip_images(&$html) {
 	
 function strip_videos(&$html) {		
 	$videos = array();		
-	if(preg_match_all('/<object.*?<(embed.*?)>/i',$html,$matches) > 0) {
+	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
 		foreach($matches[1] as $index => $video) {
 			$tag_attr = get_tag_attr($video, array(
 					'id' => 'video-'.$index,
@@ -127,7 +129,7 @@ function strip_videos(&$html) {
 		} 
 	}
 	
-	if(preg_match_all('/<(iframe.*?)>/i',$html,$matches) > 0) {
+	if(preg_match_all('/<(iframe.*?)>/si',$html,$matches) > 0) {
 		
 		foreach($matches[1] as $index => $video) {			
 			$tag_attr = get_tag_attr($video, array(
