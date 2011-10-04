@@ -68,7 +68,7 @@ function sanitize_html($html, &$attachments = null) {
 	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
 	 * Here, seattachment label is replaced with the proper label
 	 */  
-	$filtered_html = str_replace("xmlns=\"v1\" />","xmnls=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
+	$filtered_html = str_replace("xmlns=\"v1\" />","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
 	
 	return $filtered_html;
 }
