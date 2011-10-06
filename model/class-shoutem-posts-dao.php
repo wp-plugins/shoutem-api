@@ -127,7 +127,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post = $this->array_remap_keys($post, 
 		array (
 				'ID'			=> 'post_id',
-				'post_date'		=> 'published_at',				
+				'post_date_gmt'	=> 'published_at',
 				'post_title'	=> 'title',
 				'post_excerpt'	=> 'summary',
 				'post_content'	=> 'body',
@@ -141,8 +141,8 @@ class ShoutemPostsDao extends ShoutemDao {
 		}
 		$attachments = array();
 		$remaped_post['body'] = sanitize_html($body,&$attachments);
-		
-		$remaped_post['author'] = get_userdata($post->post_author)->user_nicename;
+		$user_data = get_userdata($post->post_author);		
+		$remaped_post['author'] = $user_data->display_name;		
 		$remaped_post['likeable'] = 0;
 		$remaped_post['likes_count'] = 0;
 		//$remaped_post['link'] = get_permalink($remaped_post['post_id']);
