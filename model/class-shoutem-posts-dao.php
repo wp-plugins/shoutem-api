@@ -105,7 +105,10 @@ class ShoutemPostsDao extends ShoutemDao {
 	
 	public function get_leading_image($post_id) {		
 		//Post thumbnail is the wordpress term for leading-image
-	 	$post_thumbnail = get_the_post_thumbnail($post_id);
+		$post_thumbnail = false;
+		if (function_exists("get_the_post_thumbnail")) 
+	 		$post_thumbnail = get_the_post_thumbnail($post_id);
+		}	
 		if ($post_thumbnail) {
 			$images = strip_images($post_thumbnail);
 			if (count($images) > 0) {
