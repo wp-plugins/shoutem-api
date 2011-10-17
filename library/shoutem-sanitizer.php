@@ -57,10 +57,9 @@ function sanitize_html($html, &$attachments = null) {
 		$filtered_html = wp_kses($filtered_html, $allowed_html);
 	} else {		
 		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
-	
 		$filtered_html = preg_replace($forbiden_elements, "",$html);
 		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
-		//$filtered_html = preg_replace("/([\n\r]\s?)+/i","<br/>",$filtered_html);
+		
 	}
 	
 	/*
@@ -68,7 +67,7 @@ function sanitize_html($html, &$attachments = null) {
 	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
 	 * Here, seattachment label is replaced with the proper label
 	 */  
-	$filtered_html = str_replace("xmlns=\"v1\" />","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
+	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
 	
 	return $filtered_html;
 }
@@ -102,7 +101,7 @@ function strip_images(&$html) {
 				'title' => ''
 			));
 			$images []= $image;	
-			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"/>",$html);
+			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\" xmlns=\"v1\"/>",$html);
 		}
 	} 		
 	return $images;
@@ -124,7 +123,7 @@ function strip_videos(&$html) {
 			if (strpos($tag_attr['src'],'youtube') >= 0) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"/>",$html);
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\"/>",$html);
 			}
 		} 
 	}
@@ -145,7 +144,7 @@ function strip_videos(&$html) {
 			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"/>",$html);								
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\"/>",$html);								
 			}
 			
 			//vimeo video
@@ -153,7 +152,7 @@ function strip_videos(&$html) {
 				$tag_attr['provider'] = 'vimeo';
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];				
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"/>",$html);								
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\"/>",$html);								
 			}
 		} 
 	}
@@ -181,7 +180,7 @@ function get_tag_attr($tag, $defaults = array()) {
  */
 function filter_tag($opening, $name, $attr, $closing) {
 	
-	$allow_tags = array('se-attachment','seattachment','se:attachment','a','blockquote','h1','h2','h3','h4','h5',
+	$allow_tags = array('se-attachment','seattachment','se:attachment','attachment','a','blockquote','h1','h2','h3','h4','h5',
 						'p','br','b','strong','em','i','a','ul','li','ol');
 	if(!in_array($name, $allow_tags)) {
 		return '';	
@@ -189,7 +188,9 @@ function filter_tag($opening, $name, $attr, $closing) {
 	
 	$filtered_attr = '';	
 	
-	if (strcmp($name,'se-attachment') == 0) {
+	if (strcmp($name,'attachment') == 0) {			
+		$filtered_attr = $attr;
+	} else if (strcmp($name,'se-attachment') == 0) {
 		$filtered_attr = $attr;
 	} else if (strcmp($name,'img') == 0) {
 		$filtered_attr = get_sanitized_attr('src',$attr);	
@@ -198,7 +199,7 @@ function filter_tag($opening, $name, $attr, $closing) {
 	}
 	
 	$tag = '<'.$opening.$name.$filtered_attr.$closing.'>';
-	
+	$tag = str_replace("\\\"", "\"", $tag);
 	return $tag;
 }
 
@@ -211,7 +212,7 @@ function is_attr_forbidden($attr) {
 
 function get_attr($name, $string) {
 	$attr = false;
-	$string = str_replace("\\\"","\"",$string);
+	//$string = str_replace("\\\"","\"",$string);
 	$match_rule = "/\s*(".$name."=\s*([\"']).*?(\\2))/i";
 	
 	if (preg_match("/\s*(".$name."=([\"'])(.*?)(\\2))/i", $string, $matches) > 0) {
