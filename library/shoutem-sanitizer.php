@@ -24,16 +24,23 @@
  * @return sanitized html    
  */
 function sanitize_html($html, &$attachments = null) {
-	if (isset($attachments)) {		
-		$attachments = strip_attachments(&$html);
+	
+	//NextGen gallery plugin fix. Sanitize images included inside of dl tags before image strip command. 
+	$forbiden_elements = "/<(dl).*?>.*?<\/(\\1)>/si";  
+	$filtered_html = preg_replace($forbiden_elements, "",$html);
+	
+	//remove comments
+	$filtered_html = preg_replace("/<!--(.*)?-->/si", "",$filtered_html);
+	
+	if (isset($attachments)) {
+		$attachments = strip_attachments(&$filtered_html);
 	}	
 	
-	$filtered_html = "";
-	$forbiden_elements = "/<(style|script|iframe|object|embed|table).*?>.*?<\/(\\1)>/si";
+	$forbiden_elements = "/<(style|script|iframe|object|embed|table|dl).*?>.*?<\/(\\1)>/si";
+	$filtered_html = preg_replace($forbiden_elements, "",$filtered_html);
+	
 	//first try wp_kses for removal of html elements 
 	if (function_exists('wp_kses')) {				
-		
-		$filtered_html = preg_replace($forbiden_elements, "",$html);
 		
 		$allowed_html = array(
 				'attachment' => array('id'=>true,'type'=>true,'xmlns'=>true),
@@ -56,10 +63,8 @@ function sanitize_html($html, &$attachments = null) {
 			);
 		$filtered_html = wp_kses($filtered_html, $allowed_html);
 	} else {		
-		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
-		$filtered_html = preg_replace($forbiden_elements, "",$html);
-		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
-		
+		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";		
+		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);		
 	}
 	
 	/*
@@ -68,8 +73,6 @@ function sanitize_html($html, &$attachments = null) {
 	 * Here, seattachment label is replaced with the proper label
 	 */  
 	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);	
-	/*$filtered_html = preg_replace("/type=\"image\"(\s)*(\/)?>/i","type=\"image\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);*/
-	/*$filtered_html = preg_replace("/type=\"video\"(\s)*(\/)?>/i","type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);*/
 	
 	return $filtered_html;
 }

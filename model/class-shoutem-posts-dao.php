@@ -127,7 +127,6 @@ class ShoutemPostsDao extends ShoutemDao {
 		$is_user_logged_in = isset($params['session_id']);
 		$include_raw_post = isset($params['include_raw_post']);
 		$is_reqistration_required = ('1' == get_option('comment_registration'));
-		
 		$remaped_post = $this->array_remap_keys($post, 
 		array (
 				'ID'			=> 'post_id',
@@ -149,7 +148,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post['author'] = $user_data->display_name;		
 		$remaped_post['likeable'] = 0;
 		$remaped_post['likes_count'] = 0;
-		//$remaped_post['link'] = get_permalink($remaped_post['post_id']);
+		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
 		
 		$leading_image = $this->get_leading_image($remaped_post['post_id']);		
 		$leading_image = apply_filters('shoutem_leading_image',$leading_image,$remaped_post['post_id']);
