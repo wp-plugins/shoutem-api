@@ -67,9 +67,9 @@ function sanitize_html($html, &$attachments = null) {
 	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
 	 * Here, seattachment label is replaced with the proper label
 	 */  
-	//$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);	
-	$filtered_html = preg_replace("/type=\"image\"(\s)*(\/)?>/i","type=\"image\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
-	$filtered_html = preg_replace("/type=\"video\"(\s)*(\/)?>/i","type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
+	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);	
+	/*$filtered_html = preg_replace("/type=\"image\"(\s)*(\/)?>/i","type=\"image\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);*/
+	/*$filtered_html = preg_replace("/type=\"video\"(\s)*(\/)?>/i","type=\"video\" xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);*/
 	
 	return $filtered_html;
 }
@@ -103,7 +103,7 @@ function strip_images(&$html) {
 				'title' => ''
 			));
 			$images []= $image;	
-			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\"/>",$html);
+			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\" xmlns=\"v1\" />",$html);
 		}
 	} 		
 	return $images;
@@ -125,7 +125,7 @@ function strip_videos(&$html) {
 			if (strpos($tag_attr['src'],'youtube') >= 0) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\"/>",$html);
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
 			}
 		} 
 	}
@@ -146,7 +146,7 @@ function strip_videos(&$html) {
 			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\"/>",$html);								
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);								
 			}
 			
 			//vimeo video
@@ -154,7 +154,7 @@ function strip_videos(&$html) {
 				$tag_attr['provider'] = 'vimeo';
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];				
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\"/>",$html);								
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);								
 			}
 		} 
 	}
