@@ -77,6 +77,14 @@ function sanitize_html($html, &$attachments = null) {
 	return $filtered_html;
 }
 
+function html_decode_list(&$list) {
+	foreach( $list as &$item) {		
+		if (is_array($item) && array_key_exists("src",$item)) {						
+			$item["src"] = html_entity_decode($item["src"]);
+		}
+	}
+}
+
 /**
  * Use only trough sanitize_html! Stripe attachments out of html and marks the places where attachments are striped.
  * @param html in/out modifies it so it contains <se-attachment id="attachment-id"> where attachment was striped
@@ -85,6 +93,8 @@ function sanitize_html($html, &$attachments = null) {
 function strip_attachments(&$html) {
 	$images = strip_images($html);		
 	$videos = strip_videos($html);
+	html_decode_list($videos);
+	html_decode_list($images);
 	return array(
 		'images' => $images,
 		'videos' => $videos 
@@ -124,7 +134,7 @@ function strip_videos(&$html) {
 					'width' => '',
 					'height' => '',						
 					'provider' => 'youtube'
-					));	
+					));				
 			if (strpos($tag_attr['src'],'youtube') >= 0) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
@@ -143,8 +153,7 @@ function strip_videos(&$html) {
 					'width' => '',
 					'height' => '',						
 					'provider' => 'youtube'
-					));
-					
+					));									
 			//youtube video				
 			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$videos []= $tag_attr;
