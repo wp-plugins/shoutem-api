@@ -94,8 +94,8 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		}
 		$cur_user = $params['wp_user'];
 		
-		//can delete if current user is administrator
-		if (array_key_exists('administrator',$cur_user->wp_capabilities)) {
+		//can delete if current user is administrator		
+		if ($cur_user->wp_capabilities && array_key_exists('administrator',$cur_user->wp_capabilities)) {
 			return true;
 		}
 		//can delete if current user created the comment 
