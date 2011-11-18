@@ -122,6 +122,10 @@ function strip_images(&$html) {
 	return $images;
 }
 	
+function sanitize_youtube_video_src($src) {
+	//replace embed/id format with v/id format
+	return str_replace('/embed/','/v/',$src);
+}
 	
 function strip_videos(&$html) {		
 	$videos = array();		
@@ -136,6 +140,7 @@ function strip_videos(&$html) {
 					'provider' => 'youtube'
 					));				
 			if (strpos($tag_attr['src'],'youtube') >= 0) {
+				$tag_attr['src'] = sanitize_youtube_video_src($tag_attr['src']);
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
@@ -156,6 +161,7 @@ function strip_videos(&$html) {
 					));									
 			//youtube video				
 			if (strpos($tag_attr['src'],'youtube') !== false) {
+				$tag_attr['src'] = sanitize_youtube_video_src($tag_attr['src']);
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);								
@@ -170,7 +176,7 @@ function strip_videos(&$html) {
 			}
 		} 
 	}
-	
+	 
 	return $videos;
 }
 	
