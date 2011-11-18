@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: shoutem
 Tags: shoutem, mobile, plugin, iphone, android, integration
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 
 ShoutEm API Wordpress plugin lets you turn your website into a full-featured mobile application in minutes using ShoutEm Mobile App Builder.
 == Description ==
