@@ -25,7 +25,8 @@ class ShoutemApiOptions {
 		'cache_expiration' => 3600 //1h
 	);
 	
-	public function __construct() {
+	public function __construct($shoutem_api) {
+		$this->shoutem_api = $shoutem_api;
 		add_action('admin_menu',array(&$this, 'admin_menu'));
 	}
 	
@@ -60,8 +61,35 @@ class ShoutemApiOptions {
 	 	$encryption_key = $options['encryption_key'];
 	 	if (!empty($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "update-options")) {
 	 		$this->update_options(&$options);
-	 	}	 	
-	 	$this->print_options_page($options);
+	 	}
+	 	
+	 	if (class_exists('ShoutemNGGDao')) {
+	 		$base_dir = $this->shoutem_api->base_dir;
+			require_once "$base_dir/model/class-shoutem-ngg-dao.php";
+		}
+		
+		if (class_exists('ShoutemFlaGalleryDao')) {
+	 		$base_dir = $this->shoutem_api->base_dir;
+			require_once "$base_dir/model/class-shoutem-flagallery-dao.php";
+		}
+		
+		$ngg_integration = array(
+				'plugin_name' => __('NextGEN Gallery'),
+				'integration_desc' => __('Allowes you to import NextGEN galleries in to your ShoutEm application'),
+				'integration_ok' => ShoutemNGGDao::available() 
+				);
+		$flagallery_integration = array(
+				'plugin_name' => __('GRAND FlAGallery'),
+				'integration_desc' => __('Allowes you to import GRAND FlAGallery galleries in to your ShoutEm application'),
+				'integration_ok' => ShoutemFlaGalleryDao::available() 
+				);
+		
+		$plugin_integration = array(
+			$ngg_integration,
+			$flagallery_integration
+		);
+		
+	 	$this->print_options_page($options,$plugin_integration);
 		
 	}
 	
@@ -76,10 +104,11 @@ class ShoutemApiOptions {
 				$options['cache_expiration'] = $expiration;	
 			}			 
 		}
+		
 		$this->save_options($options);
 	}
 	
-	private function print_options_page($options) {
+	private function print_options_page($options, $plugin_integrations) {
 		$default_encryption_key_warrning = '';
 		if($options['encryption_key'] == $this->shoutem_default_options['encryption_key']) {
 			$default_encryption_key_warrning = 
@@ -88,7 +117,7 @@ class ShoutemApiOptions {
 		?>
 			<div class="wrap">
   				<div id="icon-options-general" class="icon32"><br /></div>
-  				<h2>Shoutem API Settings</h2>
+  				<h2><?php _e('Shoutem API Settings') ?></h2>
   				<script type="text/javascript">
   					//Tnx for password generator to: Xhanch Studio http://xhanch.com
   					function gen_numb(min, max){
@@ -151,7 +180,24 @@ class ShoutemApiOptions {
 				    	<input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
 				    </p>
     			</form>
-    			
+    			<div class="clear"></div>
+    			<h4><?php _e('Shoutem supports integration with these wordpress plugins:') ?></h4>
+    			<table class="widefat">
+    				<thead>
+    					<tr>
+    						<th class="manage-column"><?php _e('Plugin') ?></th>
+    						<th class="manage-column"><?php _e('Integration Status') ?></th>
+    						<th class="manage-column"><?php _e('Integration Description') ?></th>
+    					</tr>    					
+    				</thead>
+    					<?php foreach($plugin_integrations as $plugin_integration) { ?>
+    						<tr>
+    							<td class="plugin-title"><?php echo $plugin_integration['plugin_name'] ?></td>
+    							<td><?php $plugin_integration['integration_ok'] ? _e('Integration OK') : _e('Not Integrated, check if the plugin is installed and active');?></td>
+    							<td class="desc"><?php echo $plugin_integration['integration_desc'] ?></td>
+    						</tr>
+    					<?php } ?>
+    			</table>    			
     		</div>
 		<?php	
 	}

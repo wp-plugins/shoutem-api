@@ -97,7 +97,8 @@ function strip_attachments(&$html) {
 	html_decode_list($images);
 	return array(
 		'images' => $images,
-		'videos' => $videos 
+		'videos' => $videos,
+		'audio' => array() 
 	);
 }
 	

@@ -63,7 +63,7 @@ class ShoutemDao {
 				"limit" => $limit
 			);
 		}
-
+		
 		return array(
 			"data" => array_slice($results, 0, $limit),
 			"paging" => $paging

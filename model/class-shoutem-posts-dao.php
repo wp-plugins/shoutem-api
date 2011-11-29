@@ -81,11 +81,15 @@ class ShoutemPostsDao extends ShoutemDao {
 			 'orderby'         	=> 'post_date',
 			 'order'           	=> 'DESC',
 			 'post_type'       	=> 'post',
-			 'post_status'     	=> 'publish' 
+			 'post_status'     	=> 'publish'			  
 		);
 		if(isset($params['category_id']) 
 				&& '-1' != $params['category_id']) { //cetogory_id = -1 when fitive category all post is searched
 			$post_args['category'] = $params['category_id']; 	
+		}
+		
+		if(isset($params['meta_key'])) {
+			$post_args['meta_key'] = $params['meta_key'];
 		}
 		
 		$posts = get_posts($post_args);
@@ -121,9 +125,14 @@ class ShoutemPostsDao extends ShoutemDao {
 		return false;
 		
 	}
+	
 		
-	private function get_post($post,$params) {
-		
+	private function get_post($post,$params) { 
+		$attachments = array(
+			'images' => array(),
+			'videos' => array(),
+			'audio' => array()
+		);
 		$is_user_logged_in = isset($params['session_id']);
 		$include_raw_post = isset($params['include_raw_post']);
 		$is_reqistration_required = ('1' == get_option('comment_registration'));
@@ -137,13 +146,40 @@ class ShoutemPostsDao extends ShoutemDao {
 				'comment_status'=>'commentable',									
 				'comment_count'	=>'comments_count',						
 		));
+				
+			
+		//Podpress support.		
+		if (function_exists('podPress_get_post_meta') && isset($GLOBALS['podPress'])) {			
+			global $podPress;
+			
+			//remove default podpress filter to prevent it from injecting player html into the post
+			remove_filter('the_content', array(&$podPress, 'insert_content'));
+			
+			$audio_meta = podPress_get_post_meta($post->ID,'_podPressMedia',true);
+			if ($audio_meta) {
+				foreach($audio_meta as $key => $audio) {
+				$uri = $podPress->convertPodcastFileNameToWebPath($post->ID, $key, $audio['URI'], 'web');
+					$audio_record = array(
+						'id' => '',
+						'src' => $uri,
+						'type' => 'audio',
+						'duration' => $audio['duration']
+		 			);
+		 			$attachments['audio'] []= $audio_record;
+				}	
+			}			
+		}
+	
 		
-		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));		
+		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));
+				
 		if ($include_raw_post) {
 			$remaped_post['raw_post'] = $body;
 		}
-		$attachments = array();
-		$remaped_post['body'] = sanitize_html($body,&$attachments);
+		
+		$striped_attachments = array();
+		$remaped_post['body'] = sanitize_html($body,&$striped_attachments);
+		
 		$user_data = get_userdata($post->post_author);		
 		$remaped_post['author'] = $user_data->display_name;		
 		$remaped_post['likeable'] = 0;
@@ -158,9 +194,12 @@ class ShoutemPostsDao extends ShoutemDao {
 			$leading_image['attachment-type'] = "leading_image";			
 			array_unshift($attachments['images'],$leading_image);
 		} 
+		$attachments['images'] = array_merge($attachments['images'], $striped_attachments['images']);
+		$attachments['videos'] = array_merge($attachments['videos'], $striped_attachments['videos']);
+		$attachments['audio'] = array_merge($attachments['audio'], $striped_attachments['audio']);
 		
 		$remaped_post['attachments'] = $attachments;
-		$remaped_post['image_url'] = '';		
+		$remaped_post['image_url'] = '';
 		
 		$images = $attachments['images'];
 		if (count($images) > 0) {
