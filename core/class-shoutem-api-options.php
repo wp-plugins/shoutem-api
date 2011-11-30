@@ -76,17 +76,44 @@ class ShoutemApiOptions {
 		$ngg_integration = array(
 				'plugin_name' => __('NextGEN Gallery'),
 				'integration_desc' => __('Allowes you to import NextGEN galleries in to your ShoutEm application'),
-				'integration_ok' => ShoutemNGGDao::available() 
+				'integration_ok' => ShoutemNGGDao::available(),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/nextgen-gallery/'
 				);
 		$flagallery_integration = array(
 				'plugin_name' => __('GRAND FlAGallery'),
 				'integration_desc' => __('Allowes you to import GRAND FlAGallery galleries in to your ShoutEm application'),
-				'integration_ok' => ShoutemFlaGalleryDao::available() 
+				'integration_ok' => ShoutemFlaGalleryDao::available(),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/flash-album-gallery/'
+				);
+				
+		$podpress_integration = array(
+				'plugin_name' => __('podPress'),
+				'integration_desc' => __('Allowes you to import podcasts into your ShoutEm application'),
+				'integration_ok' => isset($GLOBALS['podPress']),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/podpress/'				 
+				);
+		
+		$powerpress_integration = array(
+				'plugin_name' => __('PowerPress'),
+				'integration_desc' => __('Show podcasts in posts on your ShoutEm application'),
+				'integration_ok' => function_exists('powerpress_get_enclosure'),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/powerpress/'				 
+				); 
+		
+		
+		$viper_integration = array(
+				'plugin_name' => __('Viper\'s Video Quicktags'),
+				'integration_desc' => __('Show videos in posts on your ShoutEm application'),
+				'integration_ok' => isset($GLOBALS['VipersVideoQuicktags']),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'				 
 				);
 		
 		$plugin_integration = array(
 			$ngg_integration,
-			$flagallery_integration
+			$flagallery_integration,
+			$podpress_integration,
+			$powerpress_integration,
+			$viper_integration
 		);
 		
 	 	$this->print_options_page($options,$plugin_integration);
@@ -181,7 +208,7 @@ class ShoutemApiOptions {
 				    </p>
     			</form>
     			<div class="clear"></div>
-    			<h4><?php _e('Shoutem supports integration with these wordpress plugins:') ?></h4>
+    			<h4><?php _e('ShoutEm automatically integrates with the following plugins:') ?></h4>
     			<table class="widefat">
     				<thead>
     					<tr>
@@ -192,8 +219,16 @@ class ShoutemApiOptions {
     				</thead>
     					<?php foreach($plugin_integrations as $plugin_integration) { ?>
     						<tr>
-    							<td class="plugin-title"><?php echo $plugin_integration['plugin_name'] ?></td>
-    							<td><?php $plugin_integration['integration_ok'] ? _e('Integration OK') : _e('Not Integrated, check if the plugin is installed and active');?></td>
+    							<td class="plugin-title">
+    							<?php if ($plugin_integration['plugin_link']) {
+	    								$link = $plugin_integration['plugin_link'];
+	    								echo "<a href=\"$link\" target=\"_blank\">".$plugin_integration['plugin_name']."</a>"; 
+    								} else {
+    									echo $plugin_integration['plugin_name'];
+    								} 							
+    							?>
+    							</td>
+    							<td><?php $plugin_integration['integration_ok'] ? _e('OK') : _e('Not Integrated, check if the plugin is installed and active');?></td>
     							<td class="desc"><?php echo $plugin_integration['integration_desc'] ?></td>
     						</tr>
     					<?php } ?>
