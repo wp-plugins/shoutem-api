@@ -2,125 +2,123 @@
 /**
  * This class is designed to work only with Events Manager Wordpress plugin.
  */
+ require_once "class-shoutem-events-calendar-dao.php";
+require_once "class-shoutem-events-manager-dao.php";
+ 
 class ShoutemEventsDao extends ShoutemDao {
 	
-	/**
-	 * get event.
-	 * Required params event_id
-	 */
+	public function __construct() {
+		//list of supported providers
+		$this->providers = array(
+			'em' => new ShoutemEventsManagerDao(),
+			'ec' =>  new ShoutemEventsCalendarDao()
+		);
+	}
+	
+	
 	public function get($params) {
-		global $wpdb;
-		$query = $wpdb->prepare('SELECT 
-				event_id id, 
-				event_author event_author,
-				CONCAT(event_start_date, " ", event_start_time) 	start_time,
-				CONCAT(event_end_date, " ", event_end_time)	end_time,
-				event_name	name,
-				event_notes	description,
-				event_date_modified	updated_time,
-				NULL	image_url,
-				"open"	privacy,
-				"unknown"	category,				
-				l.location_id	venue_id,
-				l.location_name	venue_name,
-				l.location_address	venue_street,
-				l.location_town	venue_state,
-				NULL	venue_country,
-				location_latitude	venue_latitude,
-				location_longitude	venue_longitude	
-		FROM 	wp_em_events AS e join wp_em_locations AS l ON e.location_id = l.location_id 
-		WHERE	event_id = %s',$params['event_id']);		
-		$data = $this->get_by_sql($query, $params);
-		return $this->remapEvent($data);
-	}
+		//splits the id parameter to get 
+		$provider_name_and_id = $this->get_provider_name_and_id($params['event_id']);
 		
-	public function find($params) {
-		global $wpdb;
-		$criterion = "";
-		if (isset($params['category_id'])) {		
-			$criterion .= (strcmp($criterion,"") == 0) ? 'WHERE ' : ' AND ';			
-			$criterion .= $wpdb->prepare('(event_category_id = %d)',$params['category_id']);
+		//get provider
+		$provider_name = $provider_name_and_id['provider_name'];
+		$provider = $this->providers[$provider_name];
+		
+		if (!$provider->available()) {
+			return false;
 		}
-		if (isset($params['from_time'])) {		
-			$criterion .= (strcmp($criterion,"") == 0) ? 'WHERE ' : ' AND ';			
-			$criterion .= $wpdb->prepare('(TIMESTAMP(event_start_date,event_start_time) >= TIMESTAMP(%s))',$params['from_time']);
-		}
-		if (isset($params['till_time'])) {		
-			$criterion .= (strcmp($criterion,"") == 0) ? 'WHERE ' : ' AND ';			
-			$criterion .= $wpdb->prepare('(TIMESTAMP(event_start_date,event_start_time) <= TIMESTAMP(%s))',$params['till_time']);
-		}
-		if (isset($params['name'])) {		
-			$criterion .= (strcmp($criterion,"") == 0) ? 'WHERE ' : ' AND ';			
-			$criterion .= $wpdb->prepare("(event_name LIKE '%%%s%%')",$params['name']);
-		}
-		if (isset($params['category'])) {		
-			//category is not currently supported.
-		}	
+		
+		//create params for concrete provider
+		$id =  $provider_name_and_id['id'];			
+		$new_params = $params; //value copy
+		$new_params['event_id'] = $id;			
 				
-		$query ='SELECT 
-				event_id id, 
-				event_author event_author,
-				CONCAT(event_start_date, " ", event_start_time) 	start_time,
-				CONCAT(event_end_date, " ", event_end_time)	end_time,
-				event_name	name,
-				event_notes	description,
-				event_date_modified	updated_time,
-				NULL	image_url,
-				"open"	privacy,
-				"unknown"	category,
-				l.location_id	venue_id,
-				l.location_name	venue_name,
-				l.location_address	venue_street,
-				l.location_town	venue_state,
-				NULL	venue_country,
-				location_latitude	venue_latitude,
-				location_longitude	venue_longitude	
-				FROM wp_em_events AS e join wp_em_locations AS l ON e.location_id = l.location_id ' . $criterion;		
-		$paged_data = $this->find_by_sql($query, $params);
-		
-		//Remap the data from 
-		$remaped_result_set = array();
-		foreach($paged_data['data'] as $result) {
-			$remaped_result_set[] = $this->remapEvent($result); 	
-		}
-		$paged_data['data'] = $remaped_result_set;		
-		return $paged_data;
+		$record = $provider->get($new_params);				
+		$this->add_provider_name_to_record($record,$provider_name);
+				
+		return $record;
 	}
+	
+	public function find($params) {
 		
-	private function remapEvent($event) {
-		$remaped_event = array(
-			'id' => $event['id'],
-			'start_time' => $event['start_time'],
-			'end_time' => $event['end_time'],
-			'name' => $event['name'],
-			'description' => $event['description'],
-			'updated_time' => $event['updated_time'],
-			'image_url' => $event['image_url'],
-			'category' => $event['category'],			
-		);
+		//splits the id parameter to get 
+		$provider_name_and_id = $this->get_provider_name_and_id($params['category_id']);
 		
-		$user_id = $event['event_author'];
-		if ($user_id > 0) {
-			$user = get_userdata($user_id);
-			$remaped_event['owner'] = array(
-					'id' => $user_id,
-					'name' => $user->user_nicename
-					);
+		//get provider
+		$provider_name = $provider_name_and_id['provider_name'];
+		$provider = $this->providers[$provider_name];
+		if (!$provider->available()) {
+			return false;
 		}
+		//create params for concrete provider
+		$id =  $provider_name_and_id['id'];	
 		
-		$venue = array (
-			'id' => $event['venue_id'],
-			'name' => $event['venue_name'],
-			'street' => $event['venue_street'],
-			'state' => $event['venue_state'],
-			'country' => $event['venue_country'],
-			'latitude' => $event['venue_latitude'],
-			'longitude' => $event['venue_longitude'],
-		);
+		$new_params = $params; //value copy
+		$new_params['category_id'] = $id; 
+						
+		$recordset = $provider->find($new_params);		
+		$this->add_provider_name_to_recordset($recordset['data'],$provider_name);
+				
+		return $recordset;
 		
-		$remaped_event['venue'] = $venue;
-		
-		return $remaped_event;	
 	}
+	
+	public function categories($params) {
+		$new_params = array(
+			'offset' => 0,
+			'limit' => 10000
+		);
+		$results = array();
+		//concatinate the categories
+		foreach($this->providers as $provider_name => $provider) {
+			if (!$provider->available()) {
+				continue;
+			}
+			
+			$result = $provider->categories($new_params);			
+			$this->add_provider_name_to_recordset(&$result['data'],$provider_name);			
+			$results = array_merge($results, $result['data']);
+			
+		}
+			
+		$results = array_slice($results, $params['offset']);
+		
+		return $this->add_paging_info($results, $params);
+	}
+	
+	/**
+	 * get the provider name and the real id from parameter
+	 */
+	private function get_provider_name_and_id($param) {
+		$param_parts = explode(':',$param,2);
+		return array(
+			'provider_name' => $param_parts[0],
+			'id' => $param_parts[1]
+			);
+	}
+	
+	/**
+	 * Converts id field value to provider_name:id_field_value
+	 */
+	private function add_provider_name_to_recordset(&$recordset,$provider_name) {
+		foreach($recordset as &$record) {
+			$this->add_provider_name_to_record($record, $provider_name);
+		}
+	}
+	
+	/**
+	 * Converts id field values to provider_name:id_field_value
+	 */
+	private function add_provider_name_to_record(&$record,$provider_name) {
+		
+		if (isset($record['id'])) {
+			$record['id'] = $provider_name.':'.$record['id']; 
+		}
+		if (isset($record['category_id'])) {
+			$record['category_id'] = $provider_name.':'.$record['category_id'];
+			 
+		}
+	}
+
 } 
 ?>

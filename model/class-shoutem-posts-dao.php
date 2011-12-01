@@ -91,10 +91,18 @@ class ShoutemPostsDao extends ShoutemDao {
 		}
 		
 		if(isset($params['meta_key'])) {
-			$post_args['meta_key'] = $params['meta_key'];
+			$posts = array();
+			foreach($params['meta_key'] as $metakey) {
+				$post_args['meta_key'] = $metakey;
+				$meta_key_posts = get_posts($post_args);
+				$posts = array_merge($posts, $meta_key_posts);	
+			}
+			
+		} else {
+			$posts = get_posts($post_args);	
 		}
 		
-		$posts = get_posts($post_args);
+		
 			
 		if ($posts == null) {
 			throw new ShoutemApiException('invalid_params');
@@ -248,6 +256,7 @@ class ShoutemPostsDao extends ShoutemDao {
 			
 			$podpress_meta = powerpress_get_enclosure_data_podpress($post->ID);
 			if ($podpress_meta && is_array($podpress_meta)) {
+				//$podpress_meta['url'] = urlencode($podpress_meta['url']);
 				$audio_meta = array_merge($audio_meta, array($podpress_meta));
 			}
 			
@@ -417,7 +426,7 @@ class ShoutemPostsDao extends ShoutemDao {
         ), $atts ));
         
         if ($se_visible != 'true') {
-        	return '';	
+        	return '';
         }
 			
 		if ( empty($content) ) {

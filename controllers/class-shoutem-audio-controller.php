@@ -63,7 +63,19 @@ class ShoutemAudioController extends ShoutemController {
 				'paging' => array(
 				)
 			));
-		} else {
+		} else if (function_exists('powerpress_get_enclosure')) {
+			$this->view->show_recordset(array(
+				'data' => array(
+					array(
+						'category_id' => 'powerpress',
+						'name' => 'podcasts',
+						'allowed' => true
+					)		
+				),
+				'paging' => array(
+				)
+			));
+		} else {			
 			$this->view->show_recordset(array(
 				'data' => array(
 					array()		
@@ -91,9 +103,13 @@ class ShoutemAudioController extends ShoutemController {
 		} else { 
 		
 			$postsDao = $this->dao_factory->get_posts_dao();
-			
 			$params = $this->request->params;
-			$params['meta_key'] = '_podPressMedia';
+			if ($params['category_id'] == "powerpress") {				
+				$params['meta_key'] = array('enclosure', '_podPressMedia', 'podPressMedia');	
+			} else {
+				$params['meta_key'] = array('_podPressMedia', 'podPressMedia');
+			}
+						
 			$params['category_id'] = '';
 			
 			$result = $postsDao->find($params);

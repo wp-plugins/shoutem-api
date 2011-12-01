@@ -73,22 +73,32 @@ class ShoutemApiOptions {
 			require_once "$base_dir/model/class-shoutem-flagallery-dao.php";
 		}
 		
+		if (class_exists('ShoutemEventsManagerDao')) {
+	 		$base_dir = $this->shoutem_api->base_dir;
+			require_once "$base_dir/model/class-shoutem-events-manager-dao.php";
+		}
+		
+		if (class_exists('ShoutemEventsCalendarDao')) {
+	 		$base_dir = $this->shoutem_api->base_dir;
+			require_once "$base_dir/model/class-shoutem-events-calendar-dao.php";
+		}
+		
 		$ngg_integration = array(
 				'plugin_name' => __('NextGEN Gallery'),
-				'integration_desc' => __('Allowes you to import NextGEN galleries in to your ShoutEm application'),
+				'integration_desc' => __('Allows you to import NextGEN galleries in to your ShoutEm application'),
 				'integration_ok' => ShoutemNGGDao::available(),
 				'plugin_link' => 'http://wordpress.org/extend/plugins/nextgen-gallery/'
 				);
 		$flagallery_integration = array(
 				'plugin_name' => __('GRAND FlAGallery'),
-				'integration_desc' => __('Allowes you to import GRAND FlAGallery galleries in to your ShoutEm application'),
+				'integration_desc' => __('Allows you to import GRAND FlAGallery galleries in to your ShoutEm application'),
 				'integration_ok' => ShoutemFlaGalleryDao::available(),
 				'plugin_link' => 'http://wordpress.org/extend/plugins/flash-album-gallery/'
 				);
 				
 		$podpress_integration = array(
 				'plugin_name' => __('podPress'),
-				'integration_desc' => __('Allowes you to import podcasts into your ShoutEm application'),
+				'integration_desc' => __('Allows you to import podcasts into your ShoutEm application'),
 				'integration_ok' => isset($GLOBALS['podPress']),
 				'plugin_link' => 'http://wordpress.org/extend/plugins/podpress/'				 
 				);
@@ -107,13 +117,36 @@ class ShoutemApiOptions {
 				'integration_ok' => isset($GLOBALS['VipersVideoQuicktags']),
 				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'				 
 				);
+				
+		$viper_integration = array(
+				'plugin_name' => __('Viper\'s Video Quicktags'),
+				'integration_desc' => __('Show videos in posts on your ShoutEm application'),
+				'integration_ok' => isset($GLOBALS['VipersVideoQuicktags']),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'				 
+				);
 		
+		$em_integration = array(
+				'plugin_name' => __('Events Manager'),
+				'integration_desc' => __('Allows you to import events into your ShoutEm application'),
+				'integration_ok' => ShoutemEventsManagerDao::available(),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/events-manager/'				 
+				);
+		
+		$ec_integration = array(
+				'plugin_name' => __('The Events Calendar'),
+				'integration_desc' => __('Allows you to import events into your ShoutEm application'),
+				'integration_ok' => ShoutemEventsCalendarDao::available(),
+				'plugin_link' => 'http://wordpress.org/extend/plugins/the-events-calendar/'				 
+				);
+				
 		$plugin_integration = array(
 			$ngg_integration,
 			$flagallery_integration,
 			$podpress_integration,
 			$powerpress_integration,
-			$viper_integration
+			$viper_integration,
+			$em_integration,
+			$ec_integration
 		);
 		
 	 	$this->print_options_page($options,$plugin_integration);

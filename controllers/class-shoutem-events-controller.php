@@ -6,7 +6,18 @@ class ShoutemEventsController extends ShoutemController {
 	 */
 	public function doBefore() {
 		//Events only work with events manager plugin
-		$this->validate_required_plugins('events-manager/events-manager.php');
+		//$this->validate_required_plugins('events-manager/events-manager.php');
+	}
+	
+	public function categories() {
+		$this->request->use_default_params($this->default_paging_params());		
+		$this->accept_standard_params_and();
+		$params = $this->request->params;		
+		
+		$dao = $this->dao_factory->get_events_dao();
+		$categories = $dao->categories($params);
+				
+		$this->view->show_recordset($categories);
 	}
 	
 	/**
@@ -16,16 +27,32 @@ class ShoutemEventsController extends ShoutemController {
 	 */
 	public function find() {
 		$params = $this->accept_standard_params_and('category_id','from_time','till_time','name');
-		$this->request->use_default_params($this->default_paging_params());
+		$this->request->use_default_params($this->default_paging_params());		
 		$this->validate_required_params('category_id');
+				
+		$params = $this->request->params;
 		
 		$dao = $this->dao_factory->get_events_dao();
-		$data = $this->caching->use_cache(
-							array($dao,'find'),
-							$this->request->params
-							);
 		
-		$this->view->show_recordset($data);		
+		$uid = $this->caching->unique_id($params);
+		$cached = $this->caching->get_cached($uid);
+		
+		if ($cached) {
+			
+			$this->response->send_json($cached);
+			
+		} else {
+			
+			$result = $dao->find($params); //get result from data access object
+			if ($result) {
+				$json_string = $this->view->encode_recordset_as_json($result);
+				$this->caching->store_to_cache($uid, $json_string);
+				$this->response->send_json($json_string);				
+			} else {  
+				$this->response->send_error(500);
+			}
+				
+		}
 	}
 	
 	/**
