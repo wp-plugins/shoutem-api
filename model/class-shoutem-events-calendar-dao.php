@@ -1,6 +1,6 @@
 <?php
 /**
- * This class is designed to work only with Events Manager Wordpress plugin.
+ * This class is designed to work only with Events Calendar Wordpress plugin.
  */
 class ShoutemEventsCalendarDao extends ShoutemDao {
 	
@@ -30,10 +30,13 @@ class ShoutemEventsCalendarDao extends ShoutemDao {
 			return false;
 		}
 		$db = new EC_DB();
-		$event = $db->getEvent($params['event_id']);	
+		
+		$event = $db->getEvent($params['event_id']);
+			
 		if ($event && is_array($event) && count($event) > 0) {
-			return $this->get_event($event[0]);
+			return $this->convert_to_se_event($event[0]);
 		}
+		
 		return false;			 
 	}
 	
@@ -42,12 +45,15 @@ class ShoutemEventsCalendarDao extends ShoutemDao {
 			return false;
 		}
 		$db = new EC_DB();
+		
 		$events = $db->getUpcomingEvents((int)$params['offset'] + (int)$params['limit'] + 1);
 		$events = array_slice($events, $params['offset']);
+		
 		$results = array();
 		foreach($events as $event) {
-			$results []= $this->get_event($event);
+			$results []= $this->convert_to_se_event($event);
 		}
+		
 		return $this->add_paging_info($results, $params);
 	}
 			
@@ -68,7 +74,11 @@ class ShoutemEventsCalendarDao extends ShoutemDao {
 		}
 	}
 		
-	private function get_event($event) {
+	/**
+	 * Converts from events calendar event to event as defined by 
+	 * ShoutEm Data Exchange Protocol: @link http://fiveminutes.jira.com/wiki/display/SE/Data+Exchange+Protocol 
+	 */
+	private function convert_to_se_event($event) {
 				
 		$remaped_event = array(
 			'id' => $event->id,

@@ -20,10 +20,22 @@
 require_once "class-shoutem-ngg-dao.php";
 require_once "class-shoutem-flagallery-dao.php";
 
+
 class ShoutemPhotosDao extends ShoutemDao {
 	
 	public function __construct() {
-		//list of supported providers
+		/*
+		 * Combines state pattern with demultiplexing functionality.
+		 * Multiplexed State
+		 *  
+		 * There is a list of concrete photo providers (states), for example: NextGenGallery, Flash Gallery.
+		 * 
+		 * Concrete state is selected based on category or post id. This id consists of a provider name and the id of the resource, 
+		 * @see get_provider_name_and_id.
+		 * 
+		 * This class incorporates provider_name to the output of the provider @see add_provider_name_to_record, 
+		 * @see add_provider_name_to_recordset.
+		 */
 		$this->providers = array(
 			'ngg' => new ShoutemNGGDao(),
 			'flag' =>  new ShoutemFlaGalleryDao()
@@ -32,7 +44,6 @@ class ShoutemPhotosDao extends ShoutemDao {
 	
 	public function get($params) {
 		
-		//splits the id parameter to get 
 		$provider_name_and_id = $this->get_provider_name_and_id($params['post_id']);
 		
 		//get provider
@@ -56,7 +67,6 @@ class ShoutemPhotosDao extends ShoutemDao {
 		
 	public function find($params) {
 		
-		//splits the id parameter to get 
 		$provider_name_and_id = $this->get_provider_name_and_id($params['category_id']);
 		
 		//get provider
@@ -65,9 +75,9 @@ class ShoutemPhotosDao extends ShoutemDao {
 		if (!$provider->available()) {
 			return false;
 		}
-		//create params for concrete provider
-		$id =  $provider_name_and_id['id'];	
 		
+		//create params for concrete provider
+		$id =  $provider_name_and_id['id'];			
 		$new_params = $params; //value copy
 		$new_params['category_id'] = $id; 
 						
@@ -84,6 +94,7 @@ class ShoutemPhotosDao extends ShoutemDao {
 			'limit' => 10000
 		);
 		$results = array();
+		
 		//concatinate the categories
 		foreach($this->providers as $provider_name => $provider) {
 			if (!$provider->available()) {

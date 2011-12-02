@@ -17,12 +17,43 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 class ShoutemServiceController extends ShoutemController {
-	public function info() {		
+	public function info() {
+				
 		$data = array (
 			'api_version' => $this->shoutem_api->api_version,
-			'server_type' => 'wordpress' 
+			'server_type' => 'wordpress',
+			'platform_version' => phpversion()
 		);
+		if (function_exists('get_bloginfo')) {
+			$extended = array(
+			'charset' => get_bloginfo('charset'),
+			'cms_version' => get_bloginfo('version'),
+			'text_direction' => get_bloginfo('text_direction'),
+			'language' => get_bloginfo('language')
+			);
+			$data['extended'] = $extended;
+		}
 		$this->view->show_record($data);
+	}
+	
+	
+	public function plugins() {
+		if (!function_exists('get_plugins'))
+				require_once (ABSPATH."wp-admin/includes/plugin.php");
+				
+		$plugins = get_plugins();
+		
+		$results = array();
+		
+		foreach($plugins as $plugin) {
+			$results []= array(
+				'name' => $plugin['Name'],
+				'version' => $plugin['Version'],
+				'url' => $plugin['PluginURI']
+			);
+		}
+		
+		$this->view->show_record($results);
 	}
 }
 ?>

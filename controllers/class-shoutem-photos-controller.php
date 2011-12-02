@@ -36,7 +36,7 @@ class ShoutemPhotosController extends ShoutemController {
 			
 		} else {
 			
-			$image = $dao->get($params); //get result from data access object
+			$image = $dao->get($params);
 			
 			if ($image) {
 								
@@ -46,7 +46,7 @@ class ShoutemPhotosController extends ShoutemController {
 				
 			} else {
 				
-				$this->response->send_error(400,'image not found');
+				$this->response->send_error(400,'Image not found');
 				
 			}				
 		}
@@ -70,7 +70,7 @@ class ShoutemPhotosController extends ShoutemController {
 			
 		} else {
 			
-			$result = $dao->find($params); //get result from data access object
+			$result = $dao->find($params);
 			if ($result) {
 				$json_string = $this->view->encode_recordset_as_json($result);
 				$this->caching->store_to_cache($uid, $json_string);

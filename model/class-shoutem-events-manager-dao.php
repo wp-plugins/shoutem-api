@@ -4,11 +4,11 @@
  */
 class ShoutemEventsManagerDao extends ShoutemDao {
 	
-	public function available() {		
+	public static function available() {		
 		return class_exists('EM_Categories');
 	}
 	
-	public static function categories($params) {
+	public function categories($params) {
 		
 		$categories = EM_Categories::get(array(
 			'offset' => $params['offset'],
@@ -53,7 +53,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 		FROM 	wp_em_events AS e join wp_em_locations AS l ON e.location_id = l.location_id 
 		WHERE	event_id = %s',$params['event_id']);		
 		$data = $this->get_by_sql($query, $params);
-		return $this->remapEvent($data);
+		return $this->convert_to_se_event($data);
 	}
 		
 	public function find($params) {
@@ -104,13 +104,17 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 		//Remap the data from 
 		$remaped_result_set = array();
 		foreach($paged_data['data'] as $result) {
-			$remaped_result_set[] = $this->remapEvent($result); 	
+			$remaped_result_set[] = $this->convert_to_se_event($result); 	
 		}
 		$paged_data['data'] = $remaped_result_set;		
 		return $paged_data;
 	}
 		
-	private function remapEvent($event) {
+	/**
+	 * Convert from Events Manager event to a event format defined 
+	 * by ShoutEm Data Exchange Protocol @link http://fiveminutes.jira.com/wiki/display/SE/Data+Exchange+Protocol
+	 */
+	private function convert_to_se_event($event) {
 		$remaped_event = array(
 			'id' => $event['id'],
 			'start_time' => $event['start_time'],

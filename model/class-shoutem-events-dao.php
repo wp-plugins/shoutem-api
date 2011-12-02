@@ -1,10 +1,10 @@
 <?php
-/**
- * This class is designed to work only with Events Manager Wordpress plugin.
- */
  require_once "class-shoutem-events-calendar-dao.php";
 require_once "class-shoutem-events-manager-dao.php";
  
+ /**
+  * Multiplexed State pattern. See this->providers for a list of states.
+  */
 class ShoutemEventsDao extends ShoutemDao {
 	
 	public function __construct() {

@@ -20,7 +20,6 @@
 require_once "class-shoutem-posts-comments-dao.php";
 require_once "class-shoutem-posts-dao.php";
 require_once "class-shoutem-users-dao.php";
-require_once "class-shoutem-calendars-dao.php";
 require_once "class-shoutem-events-dao.php";
 require_once "class-shoutem-photos-dao.php";
 
@@ -30,7 +29,6 @@ class ShoutemStandardDaoFactory {
 		$this->posts_dao = new ShoutemPostsDao();
 		$this->posts_comments_dao = new ShoutemPostsCommentsDao();
 		$this->users_dao = new ShoutemUsersDao();
-		$this->calendars_dao = new ShoutemCalendarsDao();
 		$this->events_dao = new ShoutemEventsDao();
 		$this->photos_dao = new ShoutemPhotosDao();
 	}
@@ -41,10 +39,6 @@ class ShoutemStandardDaoFactory {
 	
 	function get_events_dao() {
 		return $this->events_dao;
-	}
-	
-	function get_calendars_dao() {
-		return $this->calendars_dao;
 	}
 	
 	function get_posts_dao() {

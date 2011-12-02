@@ -16,7 +16,7 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		$image = $flagdb->find_image($pid);
 		
 		if ($image) {
-			return $this->get_image($image, $params);
+			return $this->convert_to_se_post($image, $params);
 		}
 		return false;
 	}
@@ -33,7 +33,7 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		
 		
 		foreach($images as $image) {			
-			$results []= $this->get_image($image, $params);
+			$results []= $this->convert_to_se_post($image, $params);
 		}
 		return $this->add_paging_info($results, $params);
 	}
@@ -59,7 +59,11 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		return $this->add_paging_info($results, $params);
 	}
 	
-	private function get_image($image, $params) {
+	/**
+	 * Converts the image from the NGG format to the post format 
+	 * defined by the ShoutEm Data Exchange Protocol: @link http://fiveminutes.jira.com/wiki/display/SE/Data+Exchange+Protocol
+	 */
+	private function convert_to_se_post($image, $params) {
 		$user_data = get_userdata($image->author);		
 		$remaped_post['author'] = $user_data->display_name;
 		
