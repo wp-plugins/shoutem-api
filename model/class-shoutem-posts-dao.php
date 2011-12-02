@@ -30,6 +30,29 @@ class ShoutemPostsDao extends ShoutemDao {
 		return $post;
 	}
 	
+	public function pages($params) {
+		$offset = $params['offset'];
+		$limit = $params['limit'];
+	
+		$args = array(
+			 'numberposts'     	=> $limit + 1,
+			 'offset'			=> $offset,
+		);
+		$pages = get_pages($args);
+		
+		
+		if ($pages == null) {
+			throw new ShoutemApiException('invalid_params');
+		}			 		
+		$results = array();
+
+		foreach($pages as $page) {
+			setup_postdata($page);
+			$results[] = $this->get_post($page,$params); 
+		}
+		return $this->add_paging_info($results,$params);
+	}
+	
 	public function categories($params) {		
 		$offset = $params['offset'];
 		$limit = $params['limit'];

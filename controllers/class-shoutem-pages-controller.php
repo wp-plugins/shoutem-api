@@ -16,12 +16,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-class ShoutemPostsController extends ShoutemController {
-	/**
-	 * MAPS_TO: posts/get 
-	 * REQ PARAMS: post_id
-	 * OPT PARAMS: session_id
-	 */
+class ShoutemPagesController extends ShoutemController {
+		
 	function get() {		
 		$params = $this->accept_standard_params_and('post_id','include_raw_post');
 		$this->validate_required_params('post_id');
@@ -31,7 +27,7 @@ class ShoutemPostsController extends ShoutemController {
 		$cached = $this->caching->get_cached($uid);
 		if ($cached) {
 			$this->response->send_json($cached);
-		} else {			
+		} else {
 			$postsDao = $this->dao_factory->get_posts_dao();
 			$data = $postsDao->get($this->request->params);
 			
@@ -41,43 +37,17 @@ class ShoutemPostsController extends ShoutemController {
 		}
 	}
 	
-	function categories() {	
+	function find() {
 		$this->accept_standard_params_and();
 		$this->request->use_default_params($this->default_paging_params());
 		$dao = $this->dao_factory->get_posts_dao();
+		$params = $this->request->params;
 		
-		$data = $this->caching->use_cache(
-						array($dao,'categories'), 
-						$this->request->params
-						);
+		$data = $dao->pages($params);
 						
 		$this->view->show_recordset($data);
 	}
 	
-	/**
-	 * MAPS_TO: posts/find 
-	 * OPT PARAMS: session_id, category_id, offeset (default 0), limit (default 100)
-	 */
-	function find() {		
-		$this->accept_standard_params_and('category_id');
-		$this->request->use_default_params($this->default_paging_params());
-		
-		$uid = $this->caching->unique_id($this->request->params);
-		
-		$cached = $this->caching->get_cached($uid);
-		if ($cached) {
-			$this->response->send_json($cached);
-		} else { 
-		
-			$postsDao = $this->dao_factory->get_posts_dao();
-			$result = $postsDao->find($this->request->params);
-			
-			$json_string = $this->view->encode_recordset_as_json($result);
-			$this->caching->store_to_cache($uid, $json_string);
-			$this->response->send_json($json_string);
-		}
-		
-	}
 }
 
 ?>
