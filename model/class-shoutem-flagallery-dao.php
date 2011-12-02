@@ -4,6 +4,16 @@
  */
 class ShoutemFlaGalleryDao extends ShoutemDao {
 	
+	function attach_to_hooks() {
+		remove_action('shoutem_get_post_start',array(&$this,'on_shoutem_post_start'));
+		add_action('shoutem_get_post_start',array(&$this,'on_shoutem_post_start'));
+		$this->attach_to_shortcodes();
+	}
+	
+	public function on_shoutem_post_start($params) {
+		$this->attachments = &$params['attachments_ref'];		
+	}
+	
 	public static function available() {
 		return isset($GLOBALS['flagdb']);
 	}
@@ -92,6 +102,182 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 			)
 		);
 		return $result;
+	}
+	
+	
+	
+	function attach_to_shortcodes(){
+		if (isset($GLOBALS['flagdb'])) {				
+						 
+			remove_shortcode( 'flagallery');
+			add_shortcode( 'flagallery', array(&$this, 'shortcode_flagallery' ));
+			
+			//FlaGallery video just remove for now.
+			remove_shortcode( 'grandflv');
+			add_shortcode( 'grandflv', array(&$this, 'shortcode_noop' ));		
+			remove_shortcode( 'grandvideo');
+			add_shortcode( 'grandvideo', array(&$this, 'shortcode_noop' ));
+			
+			//FlaGallery mp3 support
+			remove_shortcode( 'grandmp3');
+			add_shortcode( 'grandmp3', array(&$this, 'shortcode_grandmp3' ) );
+			remove_shortcode( 'grandmusic');
+			add_shortcode( 'grandmusic', array(&$this, 'shortcode_grandmusic' ) );
+		}
+	}
+	
+	function get_gallery($db, $id, &$images) {
+		$out = "";
+		$gallery = $db->get_gallery($id,'sortorder','ASC',true);
+		if(!$gallery) return $out;
+		foreach($gallery as $image) {
+			  
+			$pid = $image->pid;  			
+			$image = array(
+				'src' => $image->imageURL,
+				'id' => $pid,
+				'width' => $image->meta_data['width'],
+				'height' => $image->meta_data['height'],
+				'thumbnail_url' => $image->thumbURL
+			);
+			$images []= $image;
+			$out .= "<attachment id=\"$pid\" type=\"image\" xmlns=\"v1\" />";
+		}
+		return $out;
+	}
+	
+	function shortcode_noop() {
+		return '';
+	}
+	/**
+	 * FLA Gallery shortcode
+	 */
+	function shortcode_flagallery($atts) {
+		
+		if (!isset($GLOBALS['flagdb'])) {
+			return '';
+		}
+		
+		global $flagdb;
+		
+		extract(shortcode_atts(array(
+			'gid' 		=> '',
+			'album'		=> '',
+			'name'		=> '',
+			'orderby' 	=> '',
+			'order'	 	=> '',
+			'exclude' 	=> '',
+			'se_visible' => 'true'
+		), $atts ));
+		
+		if ($se_visible != 'true') {
+        	return '';	
+        }
+        
+		$out = '';
+		// make an array out of the ids
+        if($album) {
+        	$gallerylist = $flagdb->get_album($album);        	
+        	$ids = explode( ',', $gallerylist );			
+    		foreach ($ids as $id) {
+    			$out .= $this->get_gallery($flagdb, $id, $this->attachments['images']);    			
+    		}
+
+        } elseif($gid == "all") {
+			if(!$orderby) $orderby='gid';
+			if(!$order) $order='DESC';
+            $gallerylist = $flagdb->find_all_galleries($orderby, $order);
+            if(is_array($gallerylist)) {
+				$excludelist = explode(',',$exclude);
+				foreach($gallerylist as $gallery) {
+					if (in_array($gallery->gid, $excludelist))
+						continue;
+					$out .= $this->get_gallery($flagdb, $gallery->gid, $this->attachments['images']);					
+				}
+			}
+        } else {
+            $ids = explode( ',', $gid);
+    		
+    		foreach ($ids as $id) {
+    			$out .= $this->get_gallery($flagdb, $id, $this->attachments['images']);
+    		}    		
+    	}
+    	
+        return $out;			
+	}
+	
+	/**
+	 * FLA Gallery music playlist shortcode 
+	 */
+	function shortcode_grandmusic( $atts ) {
+		extract(shortcode_atts(array(
+			'playlist'	=> ''			
+		), $atts ));
+		
+		$out = '';
+		
+		if($playlist) {
+			$flag_options = get_option('flag_options');
+			$playlist_path = false;
+			
+			if (!$flag_options) {
+				return $out;
+			}
+			
+			$playlist_path = $flag_options['galleryPath'].'playlists/'.$playlist.'.xml';
+			
+			if (!file_exists($flag_options['galleryPath'].'playlists/'.$playlist.'.xml')) {
+				return $out;
+			}
+			
+			$playlist_content = file_get_contents($playlist_path);
+			
+			preg_match_all( '/.?<item id=".*?">(.*?)<\/item>/si', $playlist_content, $items );
+			if (!isset($items[1]) || !is_array($items[1])) {
+				return $out;
+			}
+			foreach($items[1] as $playlist_item) {
+				preg_match( '/.?<track>(.*?)<\/track>/i', $playlist_item, $track);
+				if (count($track) > 1) {
+					$url = $track[1];
+				}
+				$audio_record = array(
+						'id' => '',
+						'src' => $url,
+						'type' => 'audio',
+						'duration' => ''
+		 			);
+		 			
+				$this->attachments['audio'] []= $audio_record;				
+			}
+			
+		}
+		return $out;
+	}
+	
+	/**
+	 * FLA Gallery music mp3 
+	 */
+	function shortcode_grandmp3( $atts ) {
+		extract(shortcode_atts(array(
+			'id'	=> ''
+		), $atts ));
+		$out = '';
+		
+		if($id) {
+			$url = wp_get_attachment_url($id);
+			$url = str_replace(array('.mp3'), array(''), $url);
+			
+			$audio_record = array(
+						'id' => '',
+						'src' => $url,
+						'type' => 'audio',
+						'duration' => ''
+		 			);
+		 			
+			$this->attachments['audio'] []= $audio_record;			
+		}
+       	return $out;
 	}
 } 
 ?>

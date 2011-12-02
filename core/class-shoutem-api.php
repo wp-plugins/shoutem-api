@@ -31,7 +31,7 @@ class ShoutemApi {
 		$this->shoutem_options->add_listener(array(&$this,'options_changed'));
 		$this->authentication = new ShoutemApiAuthentication($options['encryption_key']);
 		
-		$this->dao_factory = new ShoutemStandardDaoFactory();
+		$this->dao_factory = ShoutemStandardDaoFactory::instance();
 		$this->request = new ShoutemApiRequest($this->dao_factory);
 		$this->response = new ShoutemApiResponse($this->base_dir);
 		$this->caching = new ShoutemApiCaching($this->shoutem_options);

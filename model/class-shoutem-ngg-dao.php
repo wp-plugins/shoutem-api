@@ -4,6 +4,16 @@
  */
 class ShoutemNGGDao extends ShoutemDao {
 	
+	function attach_to_hooks() {
+		remove_action('shoutem_get_post_start',array(&$this,'on_shoutem_post_start'));
+		add_action('shoutem_get_post_start',array(&$this,'on_shoutem_post_start'));
+		$this->attach_to_shortcodes();
+	}
+	
+	public function on_shoutem_post_start($params) {
+		$this->attachments = &$params['attachments_ref'];		
+	}
+	
 	public static function available() {
 		return isset($GLOBALS['nggdb']);
 	}
@@ -93,6 +103,87 @@ class ShoutemNGGDao extends ShoutemDao {
 			)
 		);
 		return $result;
+	}
+	
+	
+	public function attach_to_shortcodes() {
+		if (isset($GLOBALS['nggdb'])) {		
+			remove_shortcode( 'album');
+			add_shortcode( 'album', array(&$this, 'shortcode_album' ) );
+			
+        	remove_shortcode( 'imagebrowser');
+        	remove_shortcode( 'slideshow');
+	        remove_shortcode( 'nggallery');
+	        add_shortcode( 'nggallery', array(&$this, 'shortcode_gallery') );
+	        add_shortcode( 'slideshow', array(&$this, 'shortcode_gallery') );
+	        add_shortcode( 'imagebrowser', array(&$this, 'shortcode_gallery') );
+		}		
+	}
+	
+	function get_gallery($db, $id, &$images) {
+		$out = "";
+		$gallery = $db->get_gallery($id,'sortorder','ASC',true);
+		if(!$gallery) return $out;
+		foreach($gallery as $image) {
+			  
+			$pid = $image->pid;  			
+			$image = array(
+				'src' => $image->imageURL,
+				'id' => $pid,
+				'width' => $image->meta_data['width'],
+				'height' => $image->meta_data['height'],
+				'thumbnail_url' => $image->thumbURL
+			);
+			$images []= $image;
+			$out .= "<attachment id=\"$pid\" type=\"image\" xmlns=\"v1\" />";
+		}
+		return $out;
+	}
+	
+	/**
+	 * NGG album shortcode
+	 */
+	function shortcode_album($atts) {
+		global $nggdb;
+		extract(shortcode_atts(array(
+            'id'        => 0,
+            'se_visible' => 'true'
+        ), $atts ));
+        
+        if ($se_visible != 'true') {
+        	return '';	
+        }
+        
+        $out = '';
+        $album = $nggdb->find_album($id);
+        if ($album && is_array($album->gallery_ids)) {
+        	foreach($album->gallery_ids as $gallery_id) {
+        		$out .= $this->get_gallery($nggdb, $gallery_id, $this->attachments['images']);
+        	}
+        }        
+       
+       	return $out;	
+	}
+	
+	/**
+	 * NGG gallery shortcode
+	 */
+	function shortcode_gallery($atts) {
+		global $nggdb;		
+        
+        extract(shortcode_atts(array(
+            'id'        => 0,
+            'se_visible' => 'true'
+        ), $atts ));
+        
+        if ($se_visible != 'true') {
+        	return '';	
+        }
+        $out = '';        
+        $out .= $this->get_gallery($nggdb, $id, $this->attachments['images']);
+         
+        
+        return $out;
 	}
 } 
 ?>
