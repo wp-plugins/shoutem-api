@@ -193,6 +193,7 @@ class ShoutemPostsDao extends ShoutemDao {
 				'comment_count'	=>'comments_count',						
 		));
 		
+		
 		//*** ACTION  shoutem_get_post_start ***// 
 		//Integration with external plugins will usually hook to this action to
 		//substitute shortcodes or generate appropriate attachments from the content. 
@@ -203,7 +204,8 @@ class ShoutemPostsDao extends ShoutemDao {
 		));
 		
 		$body = apply_filters('the_content',do_shortcode($remaped_post['body']));
-				
+		
+		
 		if ($include_raw_post) {
 			$remaped_post['raw_post'] = $body;
 		}
@@ -241,7 +243,12 @@ class ShoutemPostsDao extends ShoutemDao {
 		
 		$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
 		
-		$remaped_posts[] = $remaped_post; 
+		
+		
+		if (!$remaped_post['summary']) {			
+			$remaped_post['summary'] = wp_trim_excerpt(apply_filters('the_excerpt', get_the_excerpt()));			
+		}
+		$remaped_posts[] = $remaped_post;		 
 		return $remaped_post;
 	}
 	
