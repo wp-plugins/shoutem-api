@@ -138,8 +138,8 @@ class ShoutemPhotosDao extends ShoutemDao {
 	 */
 	private function add_provider_name_to_record(&$record,$provider_name) {
 		
-		if (isset($record['id'])) {
-			$record['id'] = $provider_name.':'.$record['id']; 
+		if (isset($record['post_id'])) {
+			$record['post_id'] = $provider_name.':'.$record['post_id']; 
 		}
 		if (isset($record['category_id'])) {
 			$record['category_id'] = $provider_name.':'.$record['category_id'];

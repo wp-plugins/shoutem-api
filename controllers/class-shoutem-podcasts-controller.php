@@ -16,7 +16,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-class ShoutemAudioController extends ShoutemController {
+class ShoutemPodcastsController extends ShoutemController {
 	/**
 	 * MAPS_TO: audio/get 
 	 * REQ PARAMS: post_id

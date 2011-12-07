@@ -24,13 +24,12 @@
  * @return sanitized html    
  */
 function sanitize_html($html, &$attachments = null) {
-	
 	//NextGen gallery plugin fix. Sanitize images included inside of dl tags before image strip command. 
 	$forbiden_elements = "/<(dl).*?>.*?<\/(\\1)>/si";  
 	$filtered_html = preg_replace($forbiden_elements, "",$html);
 	
 	//remove comments
-	$filtered_html = preg_replace("/<!--(.*)?-->/si", "",$filtered_html);
+	$filtered_html = preg_replace("/<!--(.*?)-->/si", "",$filtered_html);
 	
 	if (isset($attachments)) {
 		$attachments = strip_attachments(&$filtered_html);

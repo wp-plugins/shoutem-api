@@ -20,23 +20,8 @@ define ("SHOUTEM_API_SUMMARY_LENGTH", 50);
 
 class ShoutemApi {
 	
-	function __construct($base_dir,$shoutem_plugin_file) {
-		
-		
-		$this->base_dir = $base_dir;
-		
-		$this->shoutem_options = new ShoutemApiOptions(&$this);
-		$options = $this->shoutem_options->get_options();
-		
-		$this->shoutem_options->add_listener(array(&$this,'options_changed'));
-		$this->authentication = new ShoutemApiAuthentication($options['encryption_key']);
-		
-		$this->dao_factory = ShoutemStandardDaoFactory::instance();
-		$this->request = new ShoutemApiRequest($this->dao_factory);
-		$this->response = new ShoutemApiResponse($this->base_dir);
-		$this->caching = new ShoutemApiCaching($this->shoutem_options);
-		add_action('template_redirect', array(&$this,'template_redirect'));
-		
+	function __construct($base_dir,$shoutem_plugin_file) {		
+		$this->base_dir = $base_dir;				
 		$this->api_version = "unknown";
 		
 		if (!function_exists('get_plugin_data')) {
@@ -46,6 +31,24 @@ class ShoutemApi {
 			$plugin_data = get_plugin_data($shoutem_plugin_file);
 			$this->api_version = $plugin_data['Version'];
 		}	
+		
+	}
+	
+	function init() {
+		add_action('template_redirect', array(&$this,'template_redirect'));
+		
+		$this->shoutem_options = new ShoutemApiOptions(&$this);
+		$options = $this->shoutem_options->get_options();
+		
+		$this->shoutem_options->add_listener(array(&$this,'options_changed'));
+		$this->authentication = new ShoutemApiAuthentication($options['encryption_key']);
+		
+
+		$this->dao_factory = ShoutemStandardDaoFactory::instance();
+		
+		$this->request = new ShoutemApiRequest($this->dao_factory);
+		$this->response = new ShoutemApiResponse($this->base_dir);
+		$this->caching = new ShoutemApiCaching($this->shoutem_options);
 		
 	}
 	

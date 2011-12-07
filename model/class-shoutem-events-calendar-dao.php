@@ -81,7 +81,7 @@ class ShoutemEventsCalendarDao extends ShoutemDao {
 	private function convert_to_se_event($event) {
 				
 		$remaped_event = array(
-			'id' => $event->id,
+			'event_id' => $event->id,
 			'start_time' => $this->get_event_time($event->eventStartDate, $event->eventStartTime),
 			'end_time' => $this->get_event_time($event->eventEndDate, $event->eventEndTime),
 			'name' => $event->eventTitle,

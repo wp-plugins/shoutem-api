@@ -78,7 +78,7 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		$remaped_post['author'] = $user_data->display_name;
 		
 		$result = array(
-			'id' => $image->pid,
+			'post_id' => $image->pid,
 			'published_at' => $image->imagedate,
 			'body' => $image->description,
 			'title' => $image->alttext,

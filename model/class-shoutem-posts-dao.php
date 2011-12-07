@@ -19,6 +19,11 @@
 */
 class ShoutemPostsDao extends ShoutemDao {
 	
+	public function __construct() {
+		global $shoutem_api;
+		$this->options = $shoutem_api->shoutem_options->get_options();
+	}
+	
 	public function get($params) {
 		global $post;
 		$wp_post = get_post($params['post_id']);
@@ -219,8 +224,13 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post['likes_count'] = 0;
 		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
 		
-		$leading_image = $this->get_leading_image($remaped_post['post_id']);		
-		$leading_image = apply_filters('shoutem_leading_image',$leading_image,$remaped_post['post_id']);
+		$leading_image = false;
+		if ($this->options['include_featured_image']) {
+			$leading_image = $this->get_leading_image($remaped_post['post_id']);
+			$leading_image = apply_filters('shoutem_leading_image',$leading_image,$remaped_post['post_id']);
+		}
+				
+		
 		
 		
 		if ($leading_image) {
