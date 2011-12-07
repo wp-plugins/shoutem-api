@@ -250,13 +250,18 @@ class ShoutemPostsDao extends ShoutemDao {
 		} 
 		
 		$post_commentable =  ($remaped_post['commentable'] == 'open');
-		if (array_key_exists('commentable', $params)) {
-			$remaped_post['commentable'] = $params['commentable'];
+		
+		if (!$this->options['enable_wp_commentable']) {			
+			$remaped_post['commentable'] = 'no';
+		} else if (array_key_exists('commentable', $params)) {
+			$remaped_post['commentable'] = $params['commentable'];			
 		} else {
 			$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);	
 		}
 		
-		
+		if ($this->options['enable_fb_commentable']) {
+			$remaped_post['fb_commentable'] = 'yes';
+		}
 		
 		
 		if (!$remaped_post['summary']) {			

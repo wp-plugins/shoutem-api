@@ -23,7 +23,9 @@ class ShoutemApiOptions {
 	var $shoutem_default_options = array (
 		'encryption_key'=>'change.me',
 		'cache_expiration' => 3600, //1h,
-		'include_featured_image' => true
+		'include_featured_image' => true,
+		'enable_fb_commentable' => false,
+		'enable_wp_commentable' => true
 	);
 	
 	public function __construct($shoutem_api) {
@@ -154,10 +156,24 @@ class ShoutemApiOptions {
 		
 	}
 	
+	private function get_checkbox_value($key) {
+		if(array_key_exists($key,$_REQUEST)) {
+			$cb = $_REQUEST[$key];		
+			if ($cb == "true") {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+	
 	private function update_options(&$options) {
 		if(!empty($_REQUEST['encryption_key'])) {
 			$options['encryption_key'] = $_REQUEST['encryption_key']; 
 		}
+		
+		
 		if(array_key_exists('cache_expiration',$_REQUEST)) {
 			$expiration = $_REQUEST['cache_expiration'];			
 			if (is_numeric($expiration) 
@@ -165,14 +181,10 @@ class ShoutemApiOptions {
 				$options['cache_expiration'] = $expiration;	
 			}			 
 		}
-		if(array_key_exists('include_featured_image',$_REQUEST)) {
-			$include_featured_image = $_REQUEST['include_featured_image'];
-			if ($include_featured_image == "true") {
-				$options['include_featured_image'] = true;
-			} else {
-				$options['include_featured_image'] = false;
-			}			
-		} 		
+		$options['include_featured_image'] = $this->get_checkbox_value('include_featured_image');		
+		$options['enable_fb_commentable'] = $this->get_checkbox_value('enable_fb_commentable');		
+		$options['enable_wp_commentable'] = $this->get_checkbox_value('enable_wp_commentable');
+		 		
 		$this->save_options($options);
 	}
 	
@@ -245,6 +257,22 @@ class ShoutemApiOptions {
         				<td>
         				<input type="hidden" name="include_featured_image" value="false" />        				
         				<input type="checkbox" name="include_featured_image" value="true" <?php echo ($options['include_featured_image'] ? "checked=\"yes\"" : "") ?>" />
+        				</td>
+        				</tr>
+        				
+        				<tr valign="top">
+        				<th scope="row"><?php _e('Enable Facebook Comments') ?></th>
+        				<td>
+        				<input type="hidden" name="enable_fb_commentable" value="false" />        				
+        				<input type="checkbox" name="enable_fb_commentable" value="true" <?php echo ($options['enable_fb_commentable'] ? "checked=\"yes\"" : "") ?>" />        				
+        				</td>
+        				</tr>
+        				
+        				<tr valign="top">
+        				<th scope="row"><?php _e('Enable Wordpress Comments') ?></th>
+        				<td>
+        				<input type="hidden" name="enable_wp_commentable" value="false" />        				
+        				<input type="checkbox" name="enable_wp_commentable" value="true" <?php echo ($options['enable_wp_commentable'] ? "checked=\"yes\"" : "") ?>" />        				
         				</td>
         				</tr>
       				</tr>
