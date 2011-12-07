@@ -49,7 +49,7 @@ class ShoutemPodpressDao extends ShoutemDao {
 						'id' => '',
 						'src' => $uri,
 						'type' => 'audio',
-						'duration' => $audio['duration']
+						'duration' => ''
 		 			);
 		 			$attachments['audio'] []= $audio_record;
 				}	

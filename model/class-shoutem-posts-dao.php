@@ -250,8 +250,12 @@ class ShoutemPostsDao extends ShoutemDao {
 		} 
 		
 		$post_commentable =  ($remaped_post['commentable'] == 'open');
+		if (array_key_exists('commentable', $params)) {
+			$remaped_post['commentable'] = $params['commentable'];
+		} else {
+			$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);	
+		}
 		
-		$remaped_post['commentable'] = $this->get_commentable($post_commentable, $is_user_logged_in, $is_reqistration_required);
 		
 		
 		
