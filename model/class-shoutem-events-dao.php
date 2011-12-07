@@ -112,7 +112,7 @@ class ShoutemEventsDao extends ShoutemDao {
 	private function add_provider_name_to_record(&$record,$provider_name) {
 		
 		if (isset($record['event_id'])) {
-			$record['event_id'] = $provider_name.':'.$record['event_id']; 
+			$record['post_id'] = $record['event_id'] = $provider_name.':'.$record['event_id']; 
 		}
 		if (isset($record['category_id'])) {
 			$record['category_id'] = $provider_name.':'.$record['category_id'];
