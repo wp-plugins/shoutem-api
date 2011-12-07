@@ -25,8 +25,8 @@ require_once "class-shoutem-events-dao.php";
 
 class ShoutemStandardDaoFactory {
 	
-	function __construct() {
-		$this->posts_dao = new ShoutemPostsDao();
+	function __construct($options) {
+		$this->posts_dao = new ShoutemPostsDao($options);
 		$this->posts_comments_dao = new ShoutemPostsCommentsDao();
 		$this->users_dao = new ShoutemUsersDao();
 		$this->calendars_dao = new ShoutemCalendarsDao();

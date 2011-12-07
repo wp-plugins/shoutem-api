@@ -22,7 +22,8 @@ class ShoutemApiOptions {
 	
 	var $shoutem_default_options = array (
 		'encryption_key'=>'change.me',
-		'cache_expiration' => 3600 //1h
+		'cache_expiration' => 3600, //1h,
+		'include_featured_image' => true
 	);
 	
 	public function __construct() {
@@ -56,7 +57,7 @@ class ShoutemApiOptions {
 		if (!current_user_can('manage_options'))  {
 	    	wp_die( __('You do not have sufficient permissions to access this page.') );
 	 	}
-	 	$options = $this->get_options();
+	 	$options = $this->get_options();	 	
 	 	$encryption_key = $options['encryption_key'];
 	 	if (!empty($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "update-options")) {
 	 		$this->update_options(&$options);
@@ -76,11 +77,19 @@ class ShoutemApiOptions {
 				$options['cache_expiration'] = $expiration;	
 			}			 
 		}
+		if(array_key_exists('include_featured_image',$_REQUEST)) {
+			$include_featured_image = $_REQUEST['include_featured_image'];
+			if ($include_featured_image == "true") {
+				$options['include_featured_image'] = true;
+			} else {
+				$options['include_featured_image'] = false;
+			}			
+		} 		
 		$this->save_options($options);
 	}
 	
 	private function print_options_page($options) {
-		$default_encryption_key_warrning = '';
+		$default_encryption_key_warrning = '';		
 		if($options['encryption_key'] == $this->shoutem_default_options['encryption_key']) {
 			$default_encryption_key_warrning = 
 			'<p>*Currently, the default encryption key is set. Leaving default encryption key could lead to compromised security of site. Change encryption key!</p>';
@@ -134,16 +143,22 @@ class ShoutemApiOptions {
     				<?php wp_nonce_field('update-options'); ?>
     				<table class="form-table">
       					<tr valign="top">
-        				<th scope="row">Shoutem api encryption key</th>
+        				<th scope="row"><?php _e('Shoutem api encryption key') ?></th>
         				<td><input type="text" id="shoutem_api_encryption_key_input" name="encryption_key" value="<?php echo htmlentities($options['encryption_key']); ?>" size="15" />        				
         				<input class="button-primary" type="button" name="generate_random_encryption_key" onClick="generate_random_encryption_key_on_click();" value="<?php _e('Generate') ?>" />
         				</td>
         				<tr valign="top">
-        				<th scope="row">Cache expiration</th>
+        				<th scope="row"><?php _e('Cache expiration') ?>Cache expiration</th>
         				<td><input type="text" id="shoutem_api_cache_expiration_input" name="cache_expiration" value="<?php echo htmlentities($options['cache_expiration']); ?>" size="15" />
-        				seconds (0 dissables caching)
+        				<?php _e('seconds (0 dissables caching)') ?>
         				</td>
-        				
+        				<tr valign="top">
+        				<th scope="row"><?php _e('Include featured/thumbnail post image') ?></th>
+        				<td>
+        				<input type="hidden" name="include_featured_image" value="false" />        				
+        				<input type="checkbox" name="include_featured_image" value="true" <?php echo ($options['include_featured_image'] ? "checked=\"yes\"" : "") ?>" />
+        				</td>
+        				</tr>
       				</tr>
     				</table>
     				<?php echo $default_encryption_key_warrning; ?>
