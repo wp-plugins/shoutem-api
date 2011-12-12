@@ -181,9 +181,21 @@ class ShoutemApiOptions {
 				$options['cache_expiration'] = $expiration;	
 			}			 
 		}
+		if (array_key_exists('comments_provider',$_REQUEST)) {
+			$comments_provider = $_REQUEST['comments_provider'];
+			if ($comments_provider == 'wordpress') {
+				$options['enable_fb_commentable'] = false;		
+				$options['enable_wp_commentable'] = true;
+			} else if ($comments_provider = 'facebook') {
+				$options['enable_fb_commentable'] = true;		
+				$options['enable_wp_commentable'] = false;
+			} else {
+				$options['enable_fb_commentable'] = true;		
+				$options['enable_wp_commentable'] = true;
+			}
+			
+		}
 		$options['include_featured_image'] = $this->get_checkbox_value('include_featured_image');		
-		$options['enable_fb_commentable'] = $this->get_checkbox_value('enable_fb_commentable');		
-		$options['enable_wp_commentable'] = $this->get_checkbox_value('enable_wp_commentable');
 		 		
 		$this->save_options($options);
 	}
@@ -261,21 +273,14 @@ class ShoutemApiOptions {
         				</tr>
         				
         				<tr valign="top">
-        				<th scope="row"><?php _e('Enable Facebook Comments') ?></th>
+        				<th scope="row"><?php _e('Comments provider') ?></th>
         				<td>
-        				<input type="hidden" name="enable_fb_commentable" value="false" />        				
-        				<input type="checkbox" name="enable_fb_commentable" value="true" <?php echo ($options['enable_fb_commentable'] ? "checked=\"yes\"" : "") ?>" />        				
+        				<input type="radio" name="comments_provider" value="wordpress" <?php echo ((!$options['enable_fb_commentable'] && $options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Wordpress Comments') ?> <br />
+        				<input type="radio" name="comments_provider" value="facebook" <?php echo (($options['enable_fb_commentable'] && !$options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Facebook Comments') ?> <br />
+        				<input type="radio" name="comments_provider" value="wordpress_facebook" <?php echo (($options['enable_fb_commentable'] && $options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Facebook and Wordpress Comments') ?> <br />
         				</td>
         				</tr>
         				
-        				<tr valign="top">
-        				<th scope="row"><?php _e('Enable Wordpress Comments') ?></th>
-        				<td>
-        				<input type="hidden" name="enable_wp_commentable" value="false" />        				
-        				<input type="checkbox" name="enable_wp_commentable" value="true" <?php echo ($options['enable_wp_commentable'] ? "checked=\"yes\"" : "") ?>" />        				
-        				</td>
-        				</tr>
-      				</tr>
     				</table>
     				<?php echo $default_encryption_key_warrning; ?>
     				<p class="submit">
