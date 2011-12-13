@@ -25,7 +25,8 @@ class ShoutemApiOptions {
 		'cache_expiration' => 3600, //1h,
 		'include_featured_image' => true,
 		'enable_fb_commentable' => false,
-		'enable_wp_commentable' => true
+		'enable_wp_commentable' => true,
+		'lead_img_custom_field_regex' => ''
 	);
 	
 	public function __construct($shoutem_api) {
@@ -172,8 +173,7 @@ class ShoutemApiOptions {
 		if(!empty($_REQUEST['encryption_key'])) {
 			$options['encryption_key'] = $_REQUEST['encryption_key']; 
 		}
-		
-		
+				
 		if(array_key_exists('cache_expiration',$_REQUEST)) {
 			$expiration = $_REQUEST['cache_expiration'];			
 			if (is_numeric($expiration) 
@@ -181,6 +181,11 @@ class ShoutemApiOptions {
 				$options['cache_expiration'] = $expiration;	
 			}			 
 		}
+		
+		if(array_key_exists('lead_img_custom_field_regex',$_REQUEST)) {
+			$options['lead_img_custom_field_regex'] = $_REQUEST['lead_img_custom_field_regex'];
+		}
+		
 		if (array_key_exists('comments_provider',$_REQUEST)) {
 			$comments_provider = $_REQUEST['comments_provider'];
 			if ($comments_provider == 'wordpress') {
@@ -264,6 +269,10 @@ class ShoutemApiOptions {
         				<td><input type="text" id="shoutem_api_cache_expiration_input" name="cache_expiration" value="<?php echo htmlentities($options['cache_expiration']); ?>" size="15" />
         				<?php _e('seconds (0 dissables caching)') ?>
         				</td>
+        				<tr valign="top">
+        				<th scope="row"><?php _e('Lead image custom field regex') ?></th>
+        				<td><input type="text" name="lead_img_custom_field_regex" value="<?php echo htmlentities($options['lead_img_custom_field_regex']); ?>" size="15" />
+        				</tr>
         				<tr valign="top">
         				<th scope="row"><?php _e('Include featured/thumbnail post image') ?></th>
         				<td>
