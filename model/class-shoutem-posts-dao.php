@@ -290,8 +290,12 @@ class ShoutemPostsDao extends ShoutemDao {
 		
 		
 		if (!$remaped_post['summary']) {			
-			$remaped_post['summary'] = wp_trim_excerpt(apply_filters('the_excerpt', get_the_excerpt()));			
+			$remaped_post['summary'] = wp_trim_excerpt(apply_filters('the_excerpt', get_the_excerpt()));
+			$remaped_post['summary'] = html_to_text($remaped_post['summary']);						
 		}
+		
+		$remaped_post['title'] = html_to_text($remaped_post['title']);
+		
 		$remaped_posts[] = $remaped_post;		 
 		return $remaped_post;
 	}

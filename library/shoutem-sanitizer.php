@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+function html_to_text($html) {
+	$text = sanitize_html($html);
+	$text = wp_kses($text,array(),array());
+	$text = html_entity_decode($text,ENT_QUOTES,'UTF-8');
+	return $text;
+}
+
 /**
  * Removes elements from html that would cause problems for shoutem clients.
  * @param html to be sanitized
@@ -72,7 +79,6 @@ function sanitize_html($html, &$attachments = null) {
 	 * Here, seattachment label is replaced with the proper label
 	 */  
 	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);	
-	
 	return $filtered_html;
 }
 
