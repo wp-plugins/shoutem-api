@@ -140,7 +140,7 @@ function strip_videos(&$html) {
 	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
 		foreach($matches[1] as $index => $video) {
 			$tag_attr = get_tag_attr($video, array(
-					'id' => 'video-'.$index,
+					'id' => 'video-'.(count($videos) + $index),
 					'attachment-type' => 'video',
 					'src' => '',
 					'width' => '',
@@ -161,7 +161,7 @@ function strip_videos(&$html) {
 		
 		foreach($matches[1] as $index => $video) {			
 			$tag_attr = get_tag_attr($video, array(
-					'id' => 'video-'.$index,
+					'id' => 'video-'.(count($videos) + $index),
 					'attachment-type' => 'video',
 					'src' => '',
 					'width' => '',
@@ -203,14 +203,14 @@ function strip_audio(&$html) {
 	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
 		foreach($matches[1] as $index => $audio) {
 			$tag_attr = get_tag_attr($audio, array(
-					'id' => 'audio-'.$index,
+					'id' => 'audio-'.(count($audios) + $index),
 					'attachment-type' => 'audio',
 					'src' => '',
 					'provider' => 'soundcloud'
 					));		
 			//soundcloud				
 			if (strpos($tag_attr['src'],'player.soundcloud.com') !== false) {
-				$tag_attr['player'] = get_sound_cloud_song_id($tag_attr['src']);
+				$tag_attr['provider_id'] = get_sound_cloud_song_id($tag_attr['src']);
 				$tag_attr['src'] = "";				
 				$audios []= $tag_attr;
 				$id = $tag_attr['id'];
@@ -223,7 +223,7 @@ function strip_audio(&$html) {
 		
 		foreach($matches[1] as $index => $audio) {			
 			$tag_attr = get_tag_attr($audio, array(
-					'id' => 'audio-'.$index,
+					'id' => 'audio-'.(count($audios) + $index),
 					'attachment-type' => 'audio',
 					'src' => '',
 					'provider' => 'soundcloud'
@@ -231,7 +231,7 @@ function strip_audio(&$html) {
 											
 			//soundcloud audio				
 			if (strpos($tag_attr['src'],'.soundcloud.com') !== false) {
-				$tag_attr['player'] = get_sound_cloud_song_id($tag_attr['src']);
+				$tag_attr['provider_id'] = get_sound_cloud_song_id($tag_attr['src']);
 				$tag_attr['src'] = "";				
 				$audios []= $tag_attr;
 				$id = $tag_attr['id'];
