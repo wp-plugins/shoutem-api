@@ -98,12 +98,14 @@ function html_decode_list(&$list) {
 function strip_attachments(&$html) {
 	$images = strip_images($html);		
 	$videos = strip_videos($html);
+	$audio = strip_audio($html);
 	html_decode_list($videos);
 	html_decode_list($images);
+	html_decode_list($audio);
 	return array(
 		'images' => $images,
 		'videos' => $videos,
-		'audio' => array() 
+		'audio' => $audio 
 	);
 }
 	
@@ -144,8 +146,9 @@ function strip_videos(&$html) {
 					'width' => '',
 					'height' => '',						
 					'provider' => 'youtube'
-					));				
-			if (strpos($tag_attr['src'],'youtube') >= 0) {
+					));		
+							
+			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$tag_attr['src'] = sanitize_youtube_video_src($tag_attr['src']);
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
@@ -184,6 +187,61 @@ function strip_videos(&$html) {
 	}
 	 
 	return $videos;
+}
+
+function get_sound_cloud_song_id($src) {
+	$src = urldecode($src);
+	if (preg_match("/\/tracks\/(\w+)/i",$src, $maches)) {
+		$song_id = $maches[1];
+		return $song_id;
+	}
+	return false;	
+}
+
+function strip_audio(&$html) {		
+	$audios = array();		
+	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
+		foreach($matches[1] as $index => $audio) {
+			$tag_attr = get_tag_attr($audio, array(
+					'id' => 'audio-'.$index,
+					'attachment-type' => 'audio',
+					'src' => '',
+					'provider' => 'soundcloud'
+					));		
+			//soundcloud				
+			if (strpos($tag_attr['src'],'player.soundcloud.com') !== false) {
+				$tag_attr['player'] = get_sound_cloud_song_id($tag_attr['src']);
+				$tag_attr['src'] = "";				
+				$audios []= $tag_attr;
+				$id = $tag_attr['id'];
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
+			}
+		} 
+	}
+	
+	if(preg_match_all('/<(iframe.*?)>/si',$html,$matches) > 0) {
+		
+		foreach($matches[1] as $index => $audio) {			
+			$tag_attr = get_tag_attr($audio, array(
+					'id' => 'audio-'.$index,
+					'attachment-type' => 'audio',
+					'src' => '',
+					'provider' => 'soundcloud'
+					));	
+											
+			//soundcloud audio				
+			if (strpos($tag_attr['src'],'.soundcloud.com') !== false) {
+				$tag_attr['player'] = get_sound_cloud_song_id($tag_attr['src']);
+				$tag_attr['src'] = "";				
+				$audios []= $tag_attr;
+				$id = $tag_attr['id'];
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
+			}
+			
+		} 
+	}
+			 
+	return $audios;
 }
 	
 function get_tag_attr($tag, $defaults = array()) {
