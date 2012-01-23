@@ -189,13 +189,58 @@ function strip_videos(&$html) {
 	return $videos;
 }
 
-function get_sound_cloud_song_id($src) {
+function get_sound_cloud_track_id($src) {
 	$src = urldecode($src);
 	if (preg_match("/\/tracks\/(\w+)/i",$src, $maches)) {
-		$song_id = $maches[1];
-		return $song_id;
+		$id = $maches[1];
+		return $id;
 	}
 	return false;	
+}
+
+function get_sound_cloud_playlist_id($src) {
+	$src = urldecode($src);
+	if (preg_match("/\/playlists\/(\w+)/i",$src, $maches)) {
+		$id = $maches[1];
+		return $id;
+	}
+	return false;	
+}
+
+function json_request($url) {
+	$response = wp_remote_get($url);
+	if ($response['response']['code'] != 200) {
+		return false;
+	}
+	$json = new SEServices_JSON();
+    return $json->decode($response['body']);
+}
+
+function sound_cloud_attachment($tag_attr) {
+	$trackId = get_sound_cloud_track_id($tag_attr['src']);
+	$playlistId = get_sound_cloud_playlist_id($tag_attr['src']);
+	$server = "shoutem";	
+	if ($trackId) {
+		$tag_attr['provider_id'] = $trackId;
+		$tag_attr['src'] = "";
+		$sc_api_url = 'http://api.'.$server.'.com/api/scstream?method=track/get&id='.$trackId;
+		$response = json_request($sc_api_url);		
+		if ($response) {
+			$tag_attr['duration'] = $response->duration;
+			$tag_attr['src'] = $response->stream_url;	
+		}		
+		return 	$tag_attr;
+	} else if ($playlistId) {
+		$sc_api_url = 'http://api.'.$server.'.com/api/scstream?method=playlist/get/first&id='.$playlistId;
+		$response = json_request($sc_api_url);
+		if ($response) {
+			$tag_attr['provider_id'] = $response->id;
+			$tag_attr['duration'] = $response->duration;
+			$tag_attr['src'] = $response->stream_url;
+			return $tag_attr;	
+		}				
+	}
+	return false;
 }
 
 function strip_audio(&$html) {		
@@ -210,11 +255,12 @@ function strip_audio(&$html) {
 					));		
 			//soundcloud				
 			if (strpos($tag_attr['src'],'player.soundcloud.com') !== false) {
-				$tag_attr['provider_id'] = get_sound_cloud_song_id($tag_attr['src']);
-				$tag_attr['src'] = "";				
-				$audios []= $tag_attr;
-				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
+				$sc_attachment = sound_cloud_attachment($tag_attr);
+				if ($sc_attachment) {
+					$audios []= $sc_attachment;
+					$id = $sc_attachment['id'];
+					$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);	
+				}								
 			}
 		} 
 	}
@@ -231,10 +277,9 @@ function strip_audio(&$html) {
 											
 			//soundcloud audio				
 			if (strpos($tag_attr['src'],'.soundcloud.com') !== false) {
-				$tag_attr['provider_id'] = get_sound_cloud_song_id($tag_attr['src']);
-				$tag_attr['src'] = "";				
-				$audios []= $tag_attr;
-				$id = $tag_attr['id'];
+				$sc_attachment = sound_cloud_attachment($tag_attr);				
+				$audios []= $sc_attachment;
+				$id = $sc_attachment['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
 			}
 			
