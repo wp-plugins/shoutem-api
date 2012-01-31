@@ -227,7 +227,10 @@ function sound_cloud_attachment($tag_attr) {
 		$response = json_request($sc_api_url);		
 		if ($response) {
 			$tag_attr['duration'] = $response->duration;
-			$tag_attr['src'] = $response->stream_url;	
+			$tag_attr['src'] = $response->stream_url;
+			if (property_exists($response, "title")) {
+				$tag_attr['title'] = $response->title;	
+			}			
 		}		
 		return 	$tag_attr;
 	} else if ($playlistId) {
@@ -237,6 +240,9 @@ function sound_cloud_attachment($tag_attr) {
 			$tag_attr['provider_id'] = $response->id;
 			$tag_attr['duration'] = $response->duration;
 			$tag_attr['src'] = $response->stream_url;
+			if (property_exists($response, "title")) {
+				$tag_attr['title'] = $response->title;	
+			}
 			return $tag_attr;	
 		}				
 	}
