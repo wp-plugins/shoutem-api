@@ -38,6 +38,8 @@ class ShoutemApiResponse {
 		$charset = get_option('blog_charset');
     	if (!headers_sent()) {
       		header("Content-Type: application/json; charset=$charset", true);
+      		header("Cache-Control: no-cache");
+			header("Pragma: no-cache");
     	}
     	echo $json_data;
     	exit();
