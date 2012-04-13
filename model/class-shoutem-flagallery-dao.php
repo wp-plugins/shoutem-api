@@ -69,8 +69,20 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		return $this->add_paging_info($results, $params);
 	}
 	
+	private function add_thumbnail_to_attachment($image, &$attachment) {
+		//Add thumbnail only when thumb dimensions exists (this is because fla has different aspect ratio for image and thumb)
+		if (property_exists($image, 'thumbURL') &&
+			array_key_exists('thumbnail', $image->meta_data) &&
+			array_key_exists('width', $image->meta_data['thumbnail']) &&
+			array_key_exists('height', $image->meta_data['thumbnail'])) {
+			$attachment['thumbnail_url'] = $image->thumbURL;
+			$attachment['thumbnail_width'] = $image->meta_data['thumbnail']['width'];
+			$attachment['thumbnail_height'] = $image->meta_data['thumbnail']['height'];
+		}
+	}
+	
 	/**
-	 * Converts the image from the NGG format to the post format 
+	 * Converts the image from the FLAGallery format to the post format 
 	 * defined by the ShoutEm Data Exchange Protocol: @link http://fiveminutes.jira.com/wiki/display/SE/Data+Exchange+Protocol
 	 */
 	private function convert_to_se_post($image, $params) {
@@ -95,12 +107,12 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 						'src' => $image->imageURL,
 						'id' => '',
 						'width' => $image->meta_data['width'],
-						'height' => $image->meta_data['height'],
-						'thumbnail_url' => $image->thumbURL		
+						'height' => $image->meta_data['height']
 					)
 				)
 			)
 		);
+		$this->add_thumbnail_to_attachment($image, $result['attachments']['images'][0]);		
 		return $result;
 	}
 	
@@ -130,19 +142,18 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 		$out = "";
 		$gallery = $db->get_gallery($id,'sortorder','ASC',true);
 		if(!$gallery) return $out;
-		foreach($gallery as $image) {
-			  
+		foreach($gallery as $image) {			
 			$pid = $image->pid;  			
-			$image = array(
+			$se_image = array(
 				'src' => $image->imageURL,
 				'id' => $pid,
 				'width' => $image->meta_data['width'],
-				'height' => $image->meta_data['height'],
-				'thumbnail_url' => $image->thumbURL
-			);
-			$images []= $image;
+				'height' => $image->meta_data['height']				
+			);			
+			$this->add_thumbnail_to_attachment($image, $se_image);
+			$images []= $se_image;
 			$out .= "<attachment id=\"$pid\" type=\"image\" xmlns=\"v1\" />";
-		}
+		}		
 		return $out;
 	}
 	
