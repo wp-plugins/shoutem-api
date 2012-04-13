@@ -112,7 +112,8 @@ class ShoutemFlaGalleryDao extends ShoutemDao {
 				)
 			)
 		);
-		$this->add_thumbnail_to_attachment($image, $result['attachments']['images'][0]);		
+		$this->add_thumbnail_to_attachment($image, $result['attachments']['images'][0]);
+		sanitize_attachments($result['attachments']);		
 		return $result;
 	}
 	

@@ -82,10 +82,44 @@ function sanitize_html($html, &$attachments = null) {
 	return $filtered_html;
 }
 
+function sanitize_the_url($url) {
+	$sanitized_url = trim($url);
+	$sanitized_url = str_replace(' ','%20', $sanitized_url);
+	return $sanitized_url;
+}
+
+function sanitize_attachments(&$attachments) {	
+	if (!is_array($attachments)) {
+		return;
+	}
+	foreach	($attachments as $key=>&$attachment) {
+		if (is_array($attachment)) {
+			sanitize_attachments($attachment);
+		}		
+		if (preg_match('/(.*_url)|(src)/',$key)) {
+			$attachments[$key] = sanitize_the_url($attachments[$key]);			
+		}		
+	}
+}
+
+function unparse_url($parsed_url) {
+  $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+  $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+  $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+  $user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
+  $pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
+  $pass     = ($user || $pass) ? "$pass@" : '';
+  $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+  $pathParts = explode($path, '/');
+  $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+  $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+  return "$scheme$user$pass$host$port$path$query$fragment";
+} 
+
 function html_decode_list(&$list) {
 	foreach( $list as &$item) {		
 		if (is_array($item) && array_key_exists("src",$item)) {						
-			$item["src"] = html_entity_decode($item["src"]);
+			$item["src"] = html_entity_decode($item["src"]);						
 		}
 	}
 }

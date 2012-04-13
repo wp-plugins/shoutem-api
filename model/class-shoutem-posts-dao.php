@@ -266,6 +266,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		$attachments['videos'] = array_merge($attachments['videos'], $striped_attachments['videos']);
 		$attachments['audio'] = array_merge($attachments['audio'], $striped_attachments['audio']);
 		
+		sanitize_attachments($attachments);
 		$remaped_post['attachments'] = $attachments;
 		$remaped_post['image_url'] = '';
 		

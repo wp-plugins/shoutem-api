@@ -102,6 +102,7 @@ class ShoutemNGGDao extends ShoutemDao {
 				)
 			)
 		);
+		sanitize_attachments($result['attachments']);
 		return $result;
 	}
 	
