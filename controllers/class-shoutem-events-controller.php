@@ -61,9 +61,9 @@ class ShoutemEventsController extends ShoutemController {
 	 * Optional params: session_id 
 	 */
 	public function get() {
-		$params = $this->accept_standard_params_and('event_id');
+		$params = $this->accept_standard_params_and('event_id','post_id','id');
 		$this->request->use_default_params($this->default_paging_params());
-		$this->validate_required_params('event_id');
+		
 		
 		$dao = $this->dao_factory->get_events_dao();
 		$data = $this->caching->use_cache(
