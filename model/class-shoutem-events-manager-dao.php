@@ -44,8 +44,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 			$post_id = $params['event_id'];
 		} else {
 			$post_id = $params['id'];
-		}
-		
+		}		
 		$event = EM_Events::get(array($post_id));
 		$remaped_event = "";
 		if (is_array($event) && array_key_exists($post_id, $event)) {
@@ -84,7 +83,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 	
 	private function convert_old_em_event_to_se_event($event) {
 		$remaped_event = array(
-			'id' => $event->id,
+			'post_id' => $event->id,
 			'start_time' => $event->start_date.' '.$event->start_time,
 			'end_time' => $event->end_date.' '.$event->end_time,
 			'name' => $event->name,
@@ -132,7 +131,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 		
 		//new event manager
 		$remaped_event = array(
-			'id' => $event->event_id,
+			'post_id' => $event->event_id,
 			'start_time' => $event->event_start_date.' '.$event->event_start_time,
 			'end_time' => $event->event_end_date.' '.$event->event_end_time,
 			'name' => $event->name,

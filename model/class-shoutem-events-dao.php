@@ -18,7 +18,14 @@ class ShoutemEventsDao extends ShoutemDao {
 	
 	public function get($params) {
 		//splits the id parameter to get 
-		$provider_name_and_id = $this->get_provider_name_and_id($params['event_id']);		
+		
+		if (isset($params['post_id'])) {
+			$id = $params['post_id'];
+		} else {
+			$id = $params['event_id'];
+		}
+		
+		$provider_name_and_id = $this->get_provider_name_and_id($id);		
 		//get provider
 		$provider_name = $provider_name_and_id['provider_name'];
 		$provider = $this->providers[$provider_name];
@@ -30,7 +37,7 @@ class ShoutemEventsDao extends ShoutemDao {
 		//create params for concrete provider
 		$id =  $provider_name_and_id['id'];			
 		$new_params = $params; //value copy
-		$new_params['event_id'] = $id;			
+		$new_params['event_id'] = $new_params['post_id'] = $new_params['id'] =  $id;			
 				
 		$record = $provider->get($new_params);				
 		$this->add_provider_name_to_record($record,$provider_name);
@@ -111,17 +118,15 @@ class ShoutemEventsDao extends ShoutemDao {
 	private function add_provider_name_to_record(&$record,$provider_name) {
 		
 		if (isset($record['event_id'])) {
-			$record['event_id'] = $record['event_id'] = $provider_name.':'.$record['event_id']; 
+			$record['id'] = $record['event_id'] = $record['post_id'] = $provider_name.':'.$record['event_id'];
+		} else if (isset($record['post_id'])) {
+			$record['id'] = $record['event_id'] = $record['post_id'] = $provider_name.':'.$record['post_id']; 
 		}
 		if (isset($record['id'])) {
-			$record['id'] = $record['id'] = $provider_name.':'.$record['id']; 
-		}
-		if (isset($record['post_id'])) {
-			$record['post_id'] = $record['post_id'] = $provider_name.':'.$record['post_id']; 
+			$record['id'] = $provider_name.':'.$record['id']; 
 		}
 		if (isset($record['category_id'])) {
 			$record['category_id'] = $provider_name.':'.$record['category_id'];
-			 
 		}
 	}
 
