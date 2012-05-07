@@ -126,46 +126,51 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 	private function convert_to_se_event($event) {		
 		$new_em_plugin = property_exists($event, 'event_id');
 		if (!$new_em_plugin) {
-			return self::convert_old_em_event_to_se_event($event);
+			$remaped_event = self::convert_old_em_event_to_se_event($event);
+		} else {
+		
+			//new event manager
+			$remaped_event = array(
+				'post_id' => $event->event_id,
+				'start_time' => $event->event_start_date.' '.$event->event_start_time,
+				'end_time' => $event->event_end_date.' '.$event->event_end_time,
+				'name' => $event->name,
+				'description' => $event->post_content,
+				'image_url' => $event->image_url 
+			);		
+			$user_id = $event->event_owner;			
+			
+			if ($user_id > 0) {
+				$user = get_userdata($user_id);
+				$remaped_event['owner'] = array(
+						'id' => $user_id,
+						'name' => $user->user_nicename
+						);
+			}
+			
+			$venue = array();
+			$location = EM_Locations::get(array($event->location_id));
+			
+			if (is_array($location) && count($location) > 0) {						
+				$location = $location[$event->location_id];			
+				$venue = array (
+					'id' => '',
+					'name' => $location->location_name,
+					'street' => $location->location_address,
+					'city' =>  $location->location_town,
+					'state' => $location->location_state,
+					'country' => $location->location_country,
+					'latitude' => $location->location_latitude,
+					'longitude' => $location->location_longitude,
+				);
+			}	
+			$remaped_event['venue'] = $venue;
 		}
-		
-		//new event manager
-		$remaped_event = array(
-			'post_id' => $event->event_id,
-			'start_time' => $event->event_start_date.' '.$event->event_start_time,
-			'end_time' => $event->event_end_date.' '.$event->event_end_time,
-			'name' => $event->name,
-			'description' => $event->post_content,
-			'image_url' => $event->image_url 
-		);		
-		$user_id = $event->event_owner;			
-		
-		if ($user_id > 0) {
-			$user = get_userdata($user_id);
-			$remaped_event['owner'] = array(
-					'id' => $user_id,
-					'name' => $user->user_nicename
-					);
-		}
-		
-		$venue = array();
-		$location = EM_Locations::get(array($event->location_id));
-		
-		if (is_array($location) && count($location) > 0) {						
-			$location = $location[$event->location_id];			
-			$venue = array (
-				'id' => '',
-				'name' => $location->location_name,
-				'street' => $location->location_address,
-				'city' =>  $location->location_town,
-				'state' => $location->location_state,
-				'country' => $location->location_country,
-				'latitude' => $location->location_latitude,
-				'longitude' => $location->location_longitude,
-			);
-		}	
-		$remaped_event['venue'] = $venue;
-		
+		$striped_attachments = array();
+		$remaped_event['description'] = sanitize_html($remaped_event['description'],&$striped_attachments);
+		$remaped_event['body'] = $remaped_event['description'];
+		$remaped_event['summary'] = html_to_text($remaped_event['description']);
+		$remaped_event['attachments'] = $striped_attachments;
 		return $remaped_event;	
 	}
 } 
