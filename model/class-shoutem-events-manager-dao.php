@@ -17,7 +17,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 			'category_id' => ALL_CATEGORY_ID,
 			'allowed' => true
 		);
-		/*
+		
 		$categories = EM_Categories::get(array(
 			'offset' => $params['offset'],
 			'limit' => $params['limit']
@@ -25,10 +25,10 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 		foreach ($categories as $category) {
 			$results []= array(
 				'name' => $category->name,
-				'category_id' => $category->term_group,
+				'category_id' => $category->id,
 				'allowed' => true
 			);
-		}*/
+		}
 		return $this->add_paging_info($results, $params);		
 	}
 	
@@ -53,14 +53,18 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 		return $this->convert_to_se_event($event);
 	}
 	
-	public function filter_events($events, $params) {
+	public function filter_events($events, $params) {		
 		$filtered_events = array();
+		$categoryId = $params['category_id'];
 		foreach ($events as $event) {
 			//filter by category only if not in category all
-			if ((strcmp(''.$params['category_id'], ''.ALL_CATEGORY_ID) !== 0) && 
-				strcmp(''.$params['category_id'], ''.$event->group_id)) {
-				continue;
-			}			 
+			if (strcmp(''.$categoryId, ''.ALL_CATEGORY_ID) !== 0) {
+				$categories = new EM_Categories($event);				
+				if (is_object($categories) &&
+					!array_key_exists($categoryId, $categories->categories)) { 
+					continue;
+				}
+			}						 
 			$filtered_events []= $event;
 		}
 		return $filtered_events;
