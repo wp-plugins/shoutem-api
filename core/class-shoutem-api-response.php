@@ -40,6 +40,8 @@ class ShoutemApiResponse {
       		header("Content-Type: application/json; charset=$charset", true);
       		header("Cache-Control: no-cache");
 			header("Pragma: no-cache");
+			header("Access-Control-Allow-Methods:POST, PUT, GET, DELETE, HEAD, OPTIONS");
+			header("Access-Control-Allow-Origin:*");
     	}
     	echo $json_data;
     	exit();
