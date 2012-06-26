@@ -58,10 +58,11 @@ class ShoutemApiResponse {
 		);		
 		
 		$err_resp = $err_code. " ". $err_codes[$err_code];
-		header("HTTP:1.1 $err_resp");
+		header("HTTP/1.1 $err_resp");
 		header("Status: $err_resp");
 		
 		$result = array();
+		$result['http_status_code'] = $err_code;
 		$result['error'] = $err_resp;
 		if ($details) {
 			$result['details'] = $details;
