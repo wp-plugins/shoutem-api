@@ -110,7 +110,8 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 				'comment_author_url'	=> 'author_url',
 				'comment_author_email'	=> 'author_image_url',
 				'comment_date_gmt'		=> 'published_at',
-				'comment_content'		=> 'message',									
+				'comment_content'		=> 'message',
+				'comment_approved'		=> 'approved',									
 		));
 		$remaped_comment['likeable'] = false;
 		$remaped_comment['likes_count'] = 0;
