@@ -19,10 +19,6 @@
 */
 class ShoutemPostsDao extends ShoutemDao {
 	
-	public function __construct() {
-		global $shoutem_api;
-		$this->options = $shoutem_api->shoutem_options->get_options();
-	}
 	
 	public function get($params) {
 		global $post;
@@ -157,26 +153,6 @@ class ShoutemPostsDao extends ShoutemDao {
 		}
 	}
 	
-	public function get_leading_image($post_id) {		
-		//Post thumbnail is the wordpress term for leading-image
-		
-		$post_thumbnail = false;
-		if (function_exists("get_the_post_thumbnail")) {  
-	 		$post_thumbnail = get_the_post_thumbnail($post_id);
-		}	
-		if ($post_thumbnail) {
-			$images = strip_images($post_thumbnail);
-			if (count($images) > 0) {
-				$image = $images[0];
-				$image['id'] = "";
-				return $image;
-			}					
-		} 
-		return false;
-		
-	}
-	
-	
 	private function get_post($post,$params) { 
 		$attachments = array(
 			'images' => array(),
@@ -224,7 +200,8 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post['likes_count'] = 0;
 		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
 		
-		$leading_image = false;
+		$this->include_leading_image_in_attachments($attachments, $post->ID);
+		/*$leading_image = false;
 		
 		$thumbnail_image = false;
 		if ($this->options['include_featured_image']) {
@@ -260,7 +237,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		if ($leading_image) {
 			$leading_image['attachment-type'] = "leading_image";			
 			array_unshift($attachments['images'],$leading_image);
-		} 
+		} */
 		
 		$attachments['images'] = array_merge($attachments['images'], $striped_attachments['images']);
 		$attachments['videos'] = array_merge($attachments['videos'], $striped_attachments['videos']);

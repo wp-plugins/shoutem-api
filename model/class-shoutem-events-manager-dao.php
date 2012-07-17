@@ -117,7 +117,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 				'longitude' => $location->longitude,
 			);
 		}	
-		$remaped_event['venue'] = $venue;
+		$remaped_event['place'] = $venue;
 		
 		return $remaped_event;	
 		
@@ -128,7 +128,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 	 * by ShoutEm Data Exchange Protocol @link http://fiveminutes.jira.com/wiki/display/SE/Data+Exchange+Protocol
 	 */
 	private function convert_to_se_event($event) {		
-		$new_em_plugin = property_exists($event, 'event_id');
+		$new_em_plugin = property_exists($event, 'event_id');		
 		if (!$new_em_plugin) {
 			$remaped_event = self::convert_old_em_event_to_se_event($event);
 		} else {
@@ -153,8 +153,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 			}
 			
 			$venue = array();
-			$location = EM_Locations::get(array($event->location_id));
-			
+			$location = EM_Locations::get(array($event->location_id));			
 			if (is_array($location) && count($location) > 0) {						
 				$location = $location[$event->location_id];			
 				$venue = array (
@@ -168,10 +167,13 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 					'longitude' => $location->location_longitude,
 				);
 			}	
-			$remaped_event['venue'] = $venue;
-		}
+			$remaped_event['place'] = $venue;			
+		}		
 		$striped_attachments = array();
 		$remaped_event['description'] = sanitize_html($remaped_event['description'],&$striped_attachments);
+		if (property_exists($event, 'post_id')) {			
+			$this->include_leading_image_in_attachments($striped_attachments, $event->post_id);	
+		}						
 		$remaped_event['body'] = $remaped_event['description'];
 		$remaped_event['summary'] = html_to_text($remaped_event['description']);
 		$remaped_event['attachments'] = $striped_attachments;
