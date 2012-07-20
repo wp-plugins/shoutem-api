@@ -175,6 +175,14 @@ class ShoutemPostsDao extends ShoutemDao {
 		));
 		
 		
+		$post_categories = wp_get_post_categories($remaped_post['post_id']);
+		$categories = array();		
+		$tags = array();
+		foreach($post_categories as $category) {		
+			$cat = get_category($category);						
+			$categories []= array( 'id' =>$cat->cat_ID, 'name' => $cat->name);
+		}
+		$remaped_post['categories'] = $categories;
 		//*** ACTION  shoutem_get_post_start ***// 
 		//Integration with external plugins will usually hook to this action to
 		//substitute shortcodes or generate appropriate attachments from the content. 
@@ -200,44 +208,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		$remaped_post['likes_count'] = 0;
 		$remaped_post['link'] = get_permalink($remaped_post['post_id']);
 		
-		$this->include_leading_image_in_attachments($attachments, $post->ID);
-		/*$leading_image = false;
-		
-		$thumbnail_image = false;
-		if ($this->options['include_featured_image']) {
-			$thumbnail_image = $this->get_leading_image($remaped_post['post_id']);
-			$thumbnail_image = apply_filters('shoutem_leading_image',$thumbnail_image,$remaped_post['post_id']);
-		}
-		
-		
-		$se_leading_img = get_post_meta($post->ID, 'se_leading_img', true);
-		if ($se_leading_img) {
-			$leading_image = array(
-				'src' => $se_leading_img
-			);
-		} else if ($thumbnail_image) {
-			$leading_image = $thumbnail_image;			
-		} else if (!empty($this->options['lead_img_custom_field_regex'])) {
-			$custom_field_regex = $this->options['lead_img_custom_field_regex'];
-			$post_keys = get_post_custom_keys($post->ID);
-			if ($post_keys) {
-				foreach( $post_keys as $custom_key) {
-					
-					if (preg_match($custom_field_regex, $custom_key) > 0) {
-						$leading_image = array(
-							'src' => get_post_meta($post->ID, $custom_key, true)
-							);
-						break;
-					}
-				}
-			}
-		}
-		
-				
-		if ($leading_image) {
-			$leading_image['attachment-type'] = "leading_image";			
-			array_unshift($attachments['images'],$leading_image);
-		} */
+		$this->include_leading_image_in_attachments($attachments, $post->ID);		
 		
 		$attachments['images'] = array_merge($attachments['images'], $striped_attachments['images']);
 		$attachments['videos'] = array_merge($attachments['videos'], $striped_attachments['videos']);
