@@ -20,6 +20,13 @@ class ShoutemApiCaching {
 	
 	public function __construct($options) {
 		$this->options = $options;
+		//action that gets called when a post gets published
+		add_action('publish_post', array(&$this,'on_post_published'), -9999);
+		$this->all_keys_uid = 'se-cache-all-keys';
+	}
+	
+	public function on_post_published() {
+		$this->clear_cache();
 	}
 	
 	private function is_cache_enabled() {
@@ -107,7 +114,44 @@ class ShoutemApiCaching {
 	}
 	
 	private function set_to_cache($uid, $value, $expiration) {		
-		return set_transient($uid, $value, $expiration);		
+		
+		$success = set_transient($uid, $value, $expiration);
+		if ($success) {
+			$this->add_to_used_keys($uid, $expiration);
+		}
+		return $success;
+	}
+	
+	/**
+	 * Keep track of all uid's in the cache,
+	 * needed to clear the cache later on
+	 */
+	private function add_to_used_keys($uid, $expiration) {
+		$all_keys_uid = $this->all_keys_uid;
+		$all_keys = get_transient($all_keys_uid);
+		if (!$all_keys) {
+			$all_keys = array();
+		}
+		$all_keys[$uid] = array( 
+			'uid' => $uid,
+			'expiration' => $expiration,
+			'inserted' => time()
+		); 
+		set_transient($all_keys_uid, $all_keys);		
+	}
+	
+	private function clear_cache() {
+		$all_keys_uid = $this->all_keys_uid;
+		$all_keys = get_transient($all_keys_uid);
+		if (!$all_keys) {
+			//nothing was cached
+			return;
+		}
+		foreach($all_keys as $cache_entry_desc) {
+			$cache_entry_uid = $cache_entry_desc['uid'];
+			delete_transient($cache_entry_uid);
+		}
+		delete_transient($all_keys_uid);
 	}
 }
 ?>
