@@ -42,8 +42,12 @@ function sanitize_html($html, &$attachments = null) {
 		$attachments = strip_attachments(&$filtered_html);
 	}	
 	
-	$forbiden_elements = "/<(style|script|iframe|object|embed|table|dl).*?>.*?<\/(\\1)>/si";
+	$forbiden_elements = "/<(style|script|iframe|object|embed|dl).*?>.*?<\/(\\1)>/si";
 	$filtered_html = preg_replace($forbiden_elements, "",$filtered_html);
+	
+	
+	//Limited support for tables: each table row starts from a new line	
+	$filtered_html = preg_replace("(</tr.*?>)", "<br/>",$filtered_html);
 	
 	//first try wp_kses for removal of html elements 
 	if (function_exists('wp_kses')) {				
