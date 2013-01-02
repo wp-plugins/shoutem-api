@@ -3,7 +3,7 @@
 Plugin Name: ShoutEm API
 Plugin URI: http://wordpress.org/extend/plugins/shoutem-api/
 Description: Exposes REST API for accessing blog posts and post comments, as well as adding and deleting comments. For more information, take a look at <a href="http://www.shoutem.com">www.shoutem.com</a>.
-Version: 1.3.4
+Version: 1.3.5
 Author URI: http://www.shoutem.com
 */
 
@@ -31,8 +31,8 @@ function shoutem_api_init() {
     	add_action('admin_notices', 'shoutem_api_php_version_warning');
     	return;
 	}
-	
-	
+
+
 	$shoutem_api_dir = dirname(__FILE__);
 	require_once "$shoutem_api_dir/core/class-shoutem-api-exception.php";
 	require_once "$shoutem_api_dir/core/class-shoutem-api.php";
@@ -56,6 +56,6 @@ function shoutem_api_init() {
 function shoutem_api_php_version_warning() {
   echo "<div id=\"shoutem-api-warning\" class=\"updated fade\"><p>Sorry, SHOUTEM API requires PHP version 5.0 or greater.</p></div>";
 }
-				
+
 add_action('init','shoutem_api_init');
 ?>
