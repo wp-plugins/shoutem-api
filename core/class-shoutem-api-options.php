@@ -64,7 +64,7 @@ class ShoutemApiOptions {
 	 	$options = $this->get_options();	 	
 	 	$encryption_key = $options['encryption_key'];
 	 	if (!empty($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "update-options")) {
-	 		$this->update_options(&$options);
+	 		$this->update_options($options);
 	 	}
 	 	
 	 	if (class_exists('ShoutemNGGDao')) {

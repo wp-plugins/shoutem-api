@@ -170,7 +170,7 @@ class ShoutemEventsManagerDao extends ShoutemDao {
 			$remaped_event['place'] = $venue;			
 		}		
 		$striped_attachments = array();
-		$remaped_event['description'] = sanitize_html($remaped_event['description'],&$striped_attachments);
+		$remaped_event['description'] = sanitize_html($remaped_event['description'],$striped_attachments);
 		if (property_exists($event, 'post_id')) {			
 			$this->include_leading_image_in_attachments($striped_attachments, $event->post_id);	
 		}						

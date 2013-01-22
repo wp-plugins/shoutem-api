@@ -102,7 +102,7 @@ class ShoutemPhotosDao extends ShoutemDao {
 			}
 			
 			$result = $provider->categories($new_params);			
-			$this->add_provider_name_to_recordset(&$result['data'],$provider_name);			
+			$this->add_provider_name_to_recordset($result['data'],$provider_name);			
 			$results = array_merge($results, $result['data']);
 			
 		}

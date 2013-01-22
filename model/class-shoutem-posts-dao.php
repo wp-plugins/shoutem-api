@@ -193,8 +193,7 @@ class ShoutemPostsDao extends ShoutemDao {
 		}
 
 		$striped_attachments = array ();
-		$remaped_post['body'] = sanitize_html($body, & $striped_attachments);
-
+		$remaped_post['body'] = sanitize_html($body, $striped_attachments);
 		$user_data = get_userdata($post->post_author);
 		$remaped_post['author'] = $user_data->display_name;
 		$remaped_post['likeable'] = 0;

@@ -39,7 +39,7 @@ function sanitize_html($html, &$attachments = null) {
 	$filtered_html = preg_replace("/<!--(.*?)-->/si", "",$filtered_html);
 	
 	if (isset($attachments)) {
-		$attachments = strip_attachments(&$filtered_html);
+		$attachments = strip_attachments($filtered_html);
 	}	
 	
 	$forbiden_elements = "/<(style|script|iframe|object|embed|dl).*?>.*?<\/(\\1)>/si";
