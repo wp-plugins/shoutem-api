@@ -17,11 +17,11 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 function shoutem_api_comment_duplicate_trigger() {
-	throw new ShoutemApiException('comment_duplicate_trigger');	
+	throw new ShoutemApiException('comment_duplicate_trigger');
 }
 
 function shoutem_api_comment_flood_trigger() {
-	throw new ShoutemApiException('comment_flood_trigger');	
+	throw new ShoutemApiException('comment_flood_trigger');
 }
 
 class ShoutemPostsCommentsDao extends ShoutemDao {
@@ -32,30 +32,30 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 	}
 
 	public function find($params) {
-		
+
 		$limit = $params['limit'];
 		$offset = $params['offset'];
 		$wp_comments = get_comments(array(
 			'post_id' 	=> $params['post_id'],
 			'number'  	=> $offset + $limit + 1,
 			'order'		=> 'ASC',
-			'status'	=> 'approved'
+			'status'	=> 'approve'
 		));
-				
+
 		//needed since get_comments does not support offset, limit params
-		$wp_comments = array_slice($wp_comments, $offset,$limit + 1);		
+		$wp_comments = array_slice($wp_comments, $offset,$limit + 1);
 		$result = array();
 		foreach ($wp_comments as $wp_comment) {
 			$result[] = $this->get_comment($wp_comment, $params);
 		}
-		return $this->add_paging_info($result,$params);		 
+		return $this->add_paging_info($result,$params);
 	}
-	
+
 	/**
 	 * @throws ShoutemApiException
 	 */
 	public function create($record) {
-		
+
 		$commentdata =(array(
 			'comment_author' => $record['author'],
 			'comment_author_email' => $record['author_email'],
@@ -68,55 +68,55 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 
 		add_action('comment_duplicate_trigger', 'shoutem_api_comment_duplicate_trigger');
 		add_action('comment_flood_trigger', 'shoutem_api_comment_flood_trigger');
-		
+
 		$comment_id = wp_new_comment($commentdata);
 		$comment = false;
 		if($comment_id !== false) {
 			$comment = get_comment($comment_id);
 		}
-		
+
 		if($comment !== false) {
-			return $this->get_comment($comment, $record);	
+			return $this->get_comment($comment, $record);
 		} else {
 			throw new ShoutemApiException('comment_create_error');
 		}
-		
+
 	}
-	
-	
+
+
 	public function delete($record) {
 		return wp_delete_comment($record['comment_id'],true);
 	}
-	
+
 	private function is_comment_deletable($wp_comment, $params) {
 		if (!isset($params['wp_user'])) {
 			return false;
 		}
 		$cur_user = $params['wp_user'];
-		
-		//can delete if current user is administrator		
+
+		//can delete if current user is administrator
 		if ($cur_user->wp_capabilities && array_key_exists('administrator',$cur_user->wp_capabilities)) {
 			return true;
 		}
-		//can delete if current user created the comment 
+		//can delete if current user created the comment
 		return $wp_comment->user_id == $cur_user->ID;
 	}
-	
-	private function get_comment($wp_comment, $params) {		
-		$remaped_comment = $this->array_remap_keys($wp_comment, 
+
+	private function get_comment($wp_comment, $params) {
+		$remaped_comment = $this->array_remap_keys($wp_comment,
 		array (
 				'comment_ID'			=> 'comment_id',
-				'comment_author'		=> 'author',				
+				'comment_author'		=> 'author',
 				'comment_author_url'	=> 'author_url',
 				'comment_author_email'	=> 'author_image_url',
 				'comment_date_gmt'		=> 'published_at',
 				'comment_content'		=> 'message',
-				'comment_approved'		=> 'approved',									
+				'comment_approved'		=> 'approved',
 		));
 		$remaped_comment['likeable'] = false;
 		$remaped_comment['likes_count'] = 0;
 		$remaped_comment['deletable'] = $this->is_comment_deletable($wp_comment, $params);
-		$user_id = $wp_comment->user_id; 
+		$user_id = $wp_comment->user_id;
 		if ($user_id > 0) {
 			$user = get_userdata($user_id);
 			$remaped_comment['author'] = $user->user_nicename;
@@ -125,7 +125,7 @@ class ShoutemPostsCommentsDao extends ShoutemDao {
 		}
 		return $remaped_comment;
 	}
-	
+
 }
 
 ?>
