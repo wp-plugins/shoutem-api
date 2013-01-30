@@ -27,31 +27,31 @@ function html_to_text($html) {
 /**
  * Removes elements from html that would cause problems for shoutem clients.
  * @param html to be sanitized
- * @param attachments (out) if present contains attachments from $html @see strip_attachments 
- * @return sanitized html    
+ * @param attachments (out) if present contains attachments from $html @see strip_attachments
+ * @return sanitized html
  */
 function sanitize_html($html, &$attachments = null) {
-	//NextGen gallery plugin fix. Sanitize images included inside of dl tags before image strip command. 
-	$forbiden_elements = "/<(dl).*?>.*?<\/(\\1)>/si";  
+	//NextGen gallery plugin fix. Sanitize images included inside of dl tags before image strip command.
+	$forbiden_elements = "/<(dl).*?>.*?<\/(\\1)>/si";
 	$filtered_html = preg_replace($forbiden_elements, "",$html);
-	
+
 	//remove comments
 	$filtered_html = preg_replace("/<!--(.*?)-->/si", "",$filtered_html);
-	
+
 	if (isset($attachments)) {
 		$attachments = strip_attachments($filtered_html);
-	}	
-	
+	}
+
 	$forbiden_elements = "/<(style|script|iframe|object|embed|dl).*?>.*?<\/(\\1)>/si";
 	$filtered_html = preg_replace($forbiden_elements, "",$filtered_html);
-	
-	
-	//Limited support for tables: each table row starts from a new line	
+
+
+	//Limited support for tables: each table row starts from a new line
 	$filtered_html = preg_replace("(</tr.*?>)", "<br/>",$filtered_html);
-	
-	//first try wp_kses for removal of html elements 
-	if (function_exists('wp_kses')) {				
-		
+
+	//first try wp_kses for removal of html elements
+	if (function_exists('wp_kses')) {
+
 		$allowed_html = array(
 				'attachment' => array('id'=>true,'type'=>true,'xmlns'=>true),
 				'a' => array('href'=>true),
@@ -72,17 +72,17 @@ function sanitize_html($html, &$attachments = null) {
 				'ol' => array()
 			);
 		$filtered_html = wp_kses($filtered_html, $allowed_html);
-	} else {		
-		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";		
-		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);		
+	} else {
+		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
+		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
 	}
-	
+
 	/*
 	 * This is needed because wp_kses always removes 'se-attachment' or 'se:attachment' tag regardles of $allowed_html parameter.
 	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
 	 * Here, seattachment label is replaced with the proper label
-	 */  
-	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);	
+	 */
+	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
 	return $filtered_html;
 }
 
@@ -92,17 +92,17 @@ function sanitize_the_url($url) {
 	return $sanitized_url;
 }
 
-function sanitize_attachments(&$attachments) {	
+function sanitize_attachments(&$attachments) {
 	if (!is_array($attachments)) {
 		return;
 	}
 	foreach	($attachments as $key=>&$attachment) {
 		if (is_array($attachment)) {
 			sanitize_attachments($attachment);
-		}		
+		}
 		if (preg_match('/(.*_url)|(src)/',$key)) {
-			$attachments[$key] = sanitize_the_url($attachments[$key]);			
-		}		
+			$attachments[$key] = sanitize_the_url($attachments[$key]);
+		}
 	}
 }
 
@@ -118,12 +118,12 @@ function unparse_url($parsed_url) {
   $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
   $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
   return "$scheme$user$pass$host$port$path$query$fragment";
-} 
+}
 
 function html_decode_list(&$list) {
-	foreach( $list as &$item) {		
-		if (is_array($item) && array_key_exists("src",$item)) {						
-			$item["src"] = html_entity_decode($item["src"]);						
+	foreach( $list as &$item) {
+		if (is_array($item) && array_key_exists("src",$item)) {
+			$item["src"] = html_entity_decode($item["src"]);
 		}
 	}
 }
@@ -134,7 +134,7 @@ function html_decode_list(&$list) {
  * @return attachments from html
  */
 function strip_attachments(&$html) {
-	$images = strip_images($html);		
+	$images = strip_images($html);
 	$videos = strip_videos($html);
 	$audio = strip_audio($html);
 	html_decode_list($videos);
@@ -143,38 +143,38 @@ function strip_attachments(&$html) {
 	return array(
 		'images' => $images,
 		'videos' => $videos,
-		'audio' => $audio 
+		'audio' => $audio
 	);
 }
-	
-	
+
+
 function strip_images(&$html) {
 	$images = array();
-	if(preg_match_all('/<img.*?>/i',$html,$matches) > 0) {											
-		foreach($matches[0] as $index => $imageTag) {				
+	if(preg_match_all('/<img.*?>/i',$html,$matches) > 0) {
+		foreach($matches[0] as $index => $imageTag) {
 			$id = 'img-'.$index;
 			$image = get_tag_attr($imageTag, array(
-				'id' => $id,					
-				'attachment-type' => 'image',					
+				'id' => $id,
+				'attachment-type' => 'image',
 				'src' => '',
 				'width' => '',
 				'height' => '',
 				'title' => ''
 			));
-			$images []= $image;	
+			$images []= $image;
 			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\" xmlns=\"v1\" />",$html);
 		}
-	} 		
+	}
 	return $images;
 }
-	
+
 function sanitize_youtube_video_src($src) {
 	//replace embed/id format with v/id format
 	return str_replace('/embed/','/v/',$src);
 }
-	
-function strip_videos(&$html) {		
-	$videos = array();		
+
+function strip_videos(&$html) {
+	$videos = array();
 	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
 		foreach($matches[1] as $index => $video) {
 			$tag_attr = get_tag_attr($video, array(
@@ -182,48 +182,48 @@ function strip_videos(&$html) {
 					'attachment-type' => 'video',
 					'src' => '',
 					'width' => '',
-					'height' => '',						
+					'height' => '',
 					'provider' => 'youtube'
-					));		
-							
+					));
+
 			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$tag_attr['src'] = sanitize_youtube_video_src($tag_attr['src']);
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
 			}
-		} 
+		}
 	}
-	
+
 	if(preg_match_all('/<(iframe.*?)>/si',$html,$matches) > 0) {
-		
-		foreach($matches[1] as $index => $video) {			
+
+		foreach($matches[1] as $index => $video) {
 			$tag_attr = get_tag_attr($video, array(
 					'id' => 'video-'.(count($videos) + $index),
 					'attachment-type' => 'video',
 					'src' => '',
 					'width' => '',
-					'height' => '',						
+					'height' => '',
 					'provider' => 'youtube'
-					));									
-			//youtube video				
+					));
+			//youtube video
 			if (strpos($tag_attr['src'],'youtube') !== false) {
 				$tag_attr['src'] = sanitize_youtube_video_src($tag_attr['src']);
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);								
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
 			}
-			
+
 			//vimeo video
 			if (strpos($tag_attr['src'],'vimeo') !== false) {
 				$tag_attr['provider'] = 'vimeo';
 				$videos []= $tag_attr;
-				$id = $tag_attr['id'];				
-				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);								
+				$id = $tag_attr['id'];
+				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
 			}
-		} 
+		}
 	}
-	 
+
 	return $videos;
 }
 
@@ -233,7 +233,7 @@ function get_sound_cloud_track_id($src) {
 		$id = $maches[1];
 		return $id;
 	}
-	return false;	
+	return false;
 }
 
 function get_sound_cloud_playlist_id($src) {
@@ -242,7 +242,7 @@ function get_sound_cloud_playlist_id($src) {
 		$id = $maches[1];
 		return $id;
 	}
-	return false;	
+	return false;
 }
 
 function json_request($url) {
@@ -257,19 +257,19 @@ function json_request($url) {
 function sound_cloud_attachment($tag_attr) {
 	$trackId = get_sound_cloud_track_id($tag_attr['src']);
 	$playlistId = get_sound_cloud_playlist_id($tag_attr['src']);
-	$server = "shoutem";	
+	$server = "shoutem";
 	if ($trackId) {
 		$tag_attr['provider_id'] = $trackId;
 		$tag_attr['src'] = "";
 		$sc_api_url = 'http://api.'.$server.'.com/api/scstream?method=track/get&id='.$trackId;
-		$response = json_request($sc_api_url);		
+		$response = json_request($sc_api_url);
 		if ($response) {
 			$tag_attr['duration'] = $response->duration;
 			$tag_attr['src'] = $response->stream_url;
 			if (property_exists($response, "title")) {
-				$tag_attr['title'] = $response->title;	
-			}			
-		}		
+				$tag_attr['title'] = $response->title;
+			}
+		}
 		return 	$tag_attr;
 	} else if ($playlistId) {
 		$sc_api_url = 'http://api.'.$server.'.com/api/scstream?method=playlist/get/first&id='.$playlistId;
@@ -279,16 +279,16 @@ function sound_cloud_attachment($tag_attr) {
 			$tag_attr['duration'] = $response->duration;
 			$tag_attr['src'] = $response->stream_url;
 			if (property_exists($response, "title")) {
-				$tag_attr['title'] = $response->title;	
+				$tag_attr['title'] = $response->title;
 			}
-			return $tag_attr;	
-		}				
+			return $tag_attr;
+		}
 	}
 	return false;
 }
 
-function strip_audio(&$html) {		
-	$audios = array();		
+function strip_audio(&$html) {
+	$audios = array();
 	if(preg_match_all('/<object.*?<(embed.*?)>/si',$html,$matches) > 0) {
 		foreach($matches[1] as $index => $audio) {
 			$tag_attr = get_tag_attr($audio, array(
@@ -296,43 +296,43 @@ function strip_audio(&$html) {
 					'attachment-type' => 'audio',
 					'src' => '',
 					'provider' => 'soundcloud'
-					));		
-			//soundcloud				
+					));
+			//soundcloud
 			if (strpos($tag_attr['src'],'player.soundcloud.com') !== false) {
 				$sc_attachment = sound_cloud_attachment($tag_attr);
 				if ($sc_attachment) {
 					$audios []= $sc_attachment;
 					$id = $sc_attachment['id'];
-					$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);	
-				}								
+					$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
+				}
 			}
-		} 
+		}
 	}
-	
+
 	if(preg_match_all('/<(iframe.*?)>/si',$html,$matches) > 0) {
-		
-		foreach($matches[1] as $index => $audio) {			
+
+		foreach($matches[1] as $index => $audio) {
 			$tag_attr = get_tag_attr($audio, array(
 					'id' => 'audio-'.(count($audios) + $index),
 					'attachment-type' => 'audio',
 					'src' => '',
 					'provider' => 'soundcloud'
-					));	
-											
-			//soundcloud audio				
+					));
+
+			//soundcloud audio
 			if (strpos($tag_attr['src'],'.soundcloud.com') !== false) {
-				$sc_attachment = sound_cloud_attachment($tag_attr);				
+				$sc_attachment = sound_cloud_attachment($tag_attr);
 				$audios []= $sc_attachment;
 				$id = $sc_attachment['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"audio\" xmlns=\"v1\" />",$html);
 			}
-			
-		} 
+
+		}
 	}
-			 
+
 	return $audios;
 }
-	
+
 function get_tag_attr($tag, $defaults = array()) {
 	$attr = $defaults;
 	if (preg_match_all('/ +(\w+) *= *[\'"]([^\'"]+)[\'"]/i',$tag,$matches) > 0) {
@@ -340,43 +340,43 @@ function get_tag_attr($tag, $defaults = array()) {
 		$attrVals = $matches[2];
 		for($i = 0; $i < count($attrNames); $i++) {
 			if (array_key_exists($attrNames[$i],$attr)) {
-				$attr[$attrNames[$i]] = $attrVals[$i];	
-			}			
-		}					
+				$attr[$attrNames[$i]] = $attrVals[$i];
+			}
+		}
 	}
 	return $attr;
 }
 
 /**
  * private function used by sanitize_html to remove or modify each html tag.
- * @return filtered tag 
+ * @return filtered tag
  */
 function filter_tag($opening, $name, $attr, $closing) {
-	
+
 	$allow_tags = array('se-attachment','seattachment','se:attachment','attachment','a','blockquote','h1','h2','h3','h4','h5',
 						'p','br','b','strong','em','i','a','ul','li','ol');
 	if(!in_array($name, $allow_tags)) {
-		return '';	
+		return '';
 	}
-	
-	$filtered_attr = '';	
-	
-	if (strcmp($name,'attachment') == 0) {			
+
+	$filtered_attr = '';
+
+	if (strcmp($name,'attachment') == 0) {
 		$filtered_attr = $attr;
 	} else if (strcmp($name,'se-attachment') == 0) {
 		$filtered_attr = $attr;
 	} else if (strcmp($name,'img') == 0) {
-		$filtered_attr = get_sanitized_attr('src',$attr);	
+		$filtered_attr = get_sanitized_attr('src',$attr);
 	} else if (strcmp($name,'a') == 0) {
 		$filtered_attr = get_sanitized_attr('href',$attr);
 	}
-	
+
 	$tag = '<'.$opening.$name.$filtered_attr.$closing.'>';
 	$tag = str_replace("\\\"", "\"", $tag);
 	return $tag;
 }
 
-function is_attr_forbidden($attr) {	
+function is_attr_forbidden($attr) {
 	if (preg_match("/\s*javascript.*/i",$attr['value']) > 0) {
 		return true;
 	}
@@ -387,7 +387,7 @@ function get_attr($name, $string) {
 	$attr = false;
 	//$string = str_replace("\\\"","\"",$string);
 	$match_rule = "/\s*(".$name."=\s*([\"']).*?(\\2))/i";
-	
+
 	if (preg_match("/\s*(".$name."=([\"'])(.*?)(\\2))/i", $string, $matches) > 0) {
 		$quote = $matches[2];
 		$value = $matches[3];
@@ -401,7 +401,7 @@ function get_attr($name, $string) {
 function get_sanitized_attr($name, $string) {
 	$tagAttr = get_attr($name,$string);
 	if ($tagAttr && !is_attr_forbidden($tagAttr)) {
-		return $tagAttr['html_attr'];	
+		return $tagAttr['html_attr'];
 	}
 	return '';
 }

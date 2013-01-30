@@ -17,9 +17,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 class ShoutemApiOptions {
-	
+
 	var $shoutem_options_name = "shoutem_api_options";
-	
+
 	var $shoutem_default_options = array (
 		'encryption_key'=>'change.me',
 		'cache_expiration' => 3600, //1h,
@@ -28,20 +28,20 @@ class ShoutemApiOptions {
 		'enable_wp_commentable' => true,
 		'lead_img_custom_field_regex' => ''
 	);
-	
+
 	public function __construct($shoutem_api) {
 		$this->shoutem_api = $shoutem_api;
 		add_action('admin_menu',array(&$this, 'admin_menu'));
 	}
-	
+
 	public function add_listener($listener) {
 		add_action("update_option_$this->shoutem_options_name",$listener);
 	}
-	
+
 	public function admin_menu() {
 		add_options_page('Shoutem API Settings', 'Shoutem API', 'manage_options', 'shoutem-api', array(&$this, 'admin_options'));
 	}
-	
+
 	public function get_options() {
 		$shoutem_options = $this->shoutem_default_options;
 		$saved_options = get_option($this->shoutem_options_name);
@@ -52,41 +52,41 @@ class ShoutemApiOptions {
 		}
 		return $shoutem_options;
 	}
-	
+
 	public function save_options($options) {
 		update_option($this->shoutem_options_name,$options);
 	}
-	
+
 	public function admin_options() {
 		if (!current_user_can('manage_options'))  {
 	    	wp_die( __('You do not have sufficient permissions to access this page.') );
 	 	}
-	 	$options = $this->get_options();	 	
+	 	$options = $this->get_options();
 	 	$encryption_key = $options['encryption_key'];
 	 	if (!empty($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "update-options")) {
 	 		$this->update_options($options);
 	 	}
-	 	
+
 	 	if (class_exists('ShoutemNGGDao')) {
 	 		$base_dir = $this->shoutem_api->base_dir;
 			require_once "$base_dir/model/class-shoutem-ngg-dao.php";
 		}
-		
+
 		if (class_exists('ShoutemFlaGalleryDao')) {
 	 		$base_dir = $this->shoutem_api->base_dir;
 			require_once "$base_dir/model/class-shoutem-flagallery-dao.php";
 		}
-		
+
 		if (class_exists('ShoutemEventsManagerDao')) {
 	 		$base_dir = $this->shoutem_api->base_dir;
 			require_once "$base_dir/model/class-shoutem-events-manager-dao.php";
 		}
-		
+
 		if (class_exists('ShoutemEventsCalendarDao')) {
 	 		$base_dir = $this->shoutem_api->base_dir;
 			require_once "$base_dir/model/class-shoutem-events-calendar-dao.php";
 		}
-		
+
 		$ngg_integration = array(
 				'plugin_name' => __('NextGEN Gallery'),
 				'integration_desc' => __('Allows you to import NextGEN galleries in to your ShoutEm application'),
@@ -99,50 +99,50 @@ class ShoutemApiOptions {
 				'integration_ok' => ShoutemFlaGalleryDao::available(),
 				'plugin_link' => 'http://wordpress.org/extend/plugins/flash-album-gallery/'
 				);
-				
+
 		$podpress_integration = array(
 				'plugin_name' => __('podPress'),
 				'integration_desc' => __('Allows you to import podcasts into your ShoutEm application'),
 				'integration_ok' => isset($GLOBALS['podPress']),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/podpress/'				 
+				'plugin_link' => 'http://wordpress.org/extend/plugins/podpress/'
 				);
-		
+
 		$powerpress_integration = array(
 				'plugin_name' => __('PowerPress'),
 				'integration_desc' => __('Show podcasts in posts on your ShoutEm application'),
 				'integration_ok' => function_exists('powerpress_get_enclosure'),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/powerpress/'				 
-				); 
-		
-		
+				'plugin_link' => 'http://wordpress.org/extend/plugins/powerpress/'
+				);
+
+
 		$viper_integration = array(
 				'plugin_name' => __('Viper\'s Video Quicktags'),
 				'integration_desc' => __('Show videos in posts on your ShoutEm application'),
 				'integration_ok' => isset($GLOBALS['VipersVideoQuicktags']),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'				 
+				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'
 				);
-				
+
 		$viper_integration = array(
 				'plugin_name' => __('Viper\'s Video Quicktags'),
 				'integration_desc' => __('Show videos in posts on your ShoutEm application'),
 				'integration_ok' => isset($GLOBALS['VipersVideoQuicktags']),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'				 
+				'plugin_link' => 'http://wordpress.org/extend/plugins/vipers-video-quicktags/'
 				);
-		
+
 		$em_integration = array(
 				'plugin_name' => __('Events Manager'),
 				'integration_desc' => __('Allows you to import events into your ShoutEm application'),
 				'integration_ok' => ShoutemEventsManagerDao::available(),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/events-manager/'				 
+				'plugin_link' => 'http://wordpress.org/extend/plugins/events-manager/'
 				);
-		
+
 		$ec_integration = array(
 				'plugin_name' => __('The Events Calendar'),
 				'integration_desc' => __('Allows you to import events into your ShoutEm application'),
 				'integration_ok' => ShoutemEventsCalendarDao::available(),
-				'plugin_link' => 'http://wordpress.org/extend/plugins/the-events-calendar/'				 
+				'plugin_link' => 'http://wordpress.org/extend/plugins/the-events-calendar/'
 				);
-				
+
 		$plugin_integration = array(
 			$ngg_integration,
 			$flagallery_integration,
@@ -152,14 +152,14 @@ class ShoutemApiOptions {
 			$em_integration,
 			$ec_integration
 		);
-		
+
 	 	$this->print_options_page($options,$plugin_integration);
-		
+
 	}
-	
+
 	private function get_checkbox_value($key) {
 		if(array_key_exists($key,$_REQUEST)) {
-			$cb = $_REQUEST[$key];		
+			$cb = $_REQUEST[$key];
 			if ($cb == "true") {
 				return true;
 			} else {
@@ -168,47 +168,47 @@ class ShoutemApiOptions {
 		}
 		return false;
 	}
-	
+
 	private function update_options(&$options) {
 		if(!empty($_REQUEST['encryption_key'])) {
-			$options['encryption_key'] = $_REQUEST['encryption_key']; 
+			$options['encryption_key'] = $_REQUEST['encryption_key'];
 		}
-				
+
 		if(array_key_exists('cache_expiration',$_REQUEST)) {
-			$expiration = $_REQUEST['cache_expiration'];			
-			if (is_numeric($expiration) 
+			$expiration = $_REQUEST['cache_expiration'];
+			if (is_numeric($expiration)
 			&& (int)$expiration >= 0) {
-				$options['cache_expiration'] = $expiration;	
-			}			 
+				$options['cache_expiration'] = $expiration;
+			}
 		}
-		
+
 		if(array_key_exists('lead_img_custom_field_regex',$_REQUEST)) {
 			$options['lead_img_custom_field_regex'] = $_REQUEST['lead_img_custom_field_regex'];
 		}
-		
+
 		if (array_key_exists('comments_provider',$_REQUEST)) {
 			$comments_provider = $_REQUEST['comments_provider'];
 			if ($comments_provider == 'wordpress') {
-				$options['enable_fb_commentable'] = false;		
+				$options['enable_fb_commentable'] = false;
 				$options['enable_wp_commentable'] = true;
 			} else if ($comments_provider = 'facebook') {
-				$options['enable_fb_commentable'] = true;		
+				$options['enable_fb_commentable'] = true;
 				$options['enable_wp_commentable'] = false;
 			} else {
-				$options['enable_fb_commentable'] = true;		
+				$options['enable_fb_commentable'] = true;
 				$options['enable_wp_commentable'] = true;
 			}
-			
+
 		}
-		$options['include_featured_image'] = $this->get_checkbox_value('include_featured_image');		
-		 		
+		$options['include_featured_image'] = $this->get_checkbox_value('include_featured_image');
+
 		$this->save_options($options);
 	}
-	
+
 	private function print_options_page($options, $plugin_integrations) {
-		$default_encryption_key_warrning = '';		
+		$default_encryption_key_warrning = '';
 		if($options['encryption_key'] == $this->shoutem_default_options['encryption_key']) {
-			$default_encryption_key_warrning = 
+			$default_encryption_key_warrning =
 			'<p>*Currently, the default encryption key is set. Leaving default encryption key could lead to compromised security of site. Change encryption key!</p>';
 		}
 		?>
@@ -220,14 +220,14 @@ class ShoutemApiOptions {
   					function gen_numb(min, max){
 		                return (Math.floor(Math.random() * (max - min)) + min);
 		            }
-		
+
 		            function gen_chr(num, lwr, upr, oth, ext){
 		                var num_chr = "0123456789";
 		                var lwr_chr = "abcdefghijklmnopqrstuvwxyz";
 		                var upr_chr = lwr_chr.toUpperCase();
 		                var oth_chr = "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/? ";
 		                var sel_chr = ext;
-		
+
 		                if(num == true)
 		                    sel_chr += num_chr;
 		                if(lwr == true)
@@ -238,11 +238,11 @@ class ShoutemApiOptions {
 		                    sel_chr += oth_chr;
 		                return sel_chr.charAt(gen_numb(0, sel_chr.length));
 		            }
-		
+
 		            function gen_pass(len, ext, bgn_num, bgn_lwr, bgn_upr, bgn_oth,
 		                flw_num, flw_lwr, flw_upr, flw_oth){
 		                var res = "";
-		
+
 		                if(len > 0){
 		                    res += gen_chr(bgn_num, bgn_lwr, bgn_upr, bgn_oth, ext);
 		                    for(var i=1;i<len;i++)
@@ -255,13 +255,13 @@ class ShoutemApiOptions {
         					encryption_key_element.setAttribute('value',gen_pass(16,true,true,true,false,true,true,true,false));
         			}
   				</script>
-  				
+
     			<form action="options-general.php?page=shoutem-api" method="post">
     				<?php wp_nonce_field('update-options'); ?>
     				<table class="form-table">
       					<tr valign="top">
         				<th scope="row"><?php _e('Shoutem api encryption key') ?></th>
-        				<td><input type="text" id="shoutem_api_encryption_key_input" name="encryption_key" value="<?php echo htmlentities($options['encryption_key']); ?>" size="15" />        				
+        				<td><input type="text" id="shoutem_api_encryption_key_input" name="encryption_key" value="<?php echo htmlentities($options['encryption_key']); ?>" size="15" />
         				<input class="button-primary" type="button" name="generate_random_encryption_key" onClick="generate_random_encryption_key_on_click();" value="<?php _e('Generate') ?>" />
         				</td>
         				<tr valign="top">
@@ -276,11 +276,11 @@ class ShoutemApiOptions {
         				<tr valign="top">
         				<th scope="row"><?php _e('Include featured/thumbnail post image') ?></th>
         				<td>
-        				<input type="hidden" name="include_featured_image" value="false" />        				
+        				<input type="hidden" name="include_featured_image" value="false" />
         				<input type="checkbox" name="include_featured_image" value="true" <?php echo ($options['include_featured_image'] ? "checked=\"yes\"" : "") ?>" />
         				</td>
         				</tr>
-        				
+
         				<tr valign="top">
         				<th scope="row"><?php _e('Comments provider') ?></th>
         				<td>
@@ -289,7 +289,7 @@ class ShoutemApiOptions {
         				<input type="radio" name="comments_provider" value="wordpress_facebook" <?php echo (($options['enable_fb_commentable'] && $options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Facebook and Wordpress Comments') ?> <br />
         				</td>
         				</tr>
-        				
+
     				</table>
     				<?php echo $default_encryption_key_warrning; ?>
     				<p class="submit">
@@ -304,26 +304,26 @@ class ShoutemApiOptions {
     						<th class="manage-column"><?php _e('Plugin') ?></th>
     						<th class="manage-column"><?php _e('Integration Status') ?></th>
     						<th class="manage-column"><?php _e('Integration Description') ?></th>
-    					</tr>    					
+    					</tr>
     				</thead>
     					<?php foreach($plugin_integrations as $plugin_integration) { ?>
     						<tr>
     							<td class="plugin-title">
     							<?php if ($plugin_integration['plugin_link']) {
 	    								$link = $plugin_integration['plugin_link'];
-	    								echo "<a href=\"$link\" target=\"_blank\">".$plugin_integration['plugin_name']."</a>"; 
+	    								echo "<a href=\"$link\" target=\"_blank\">".$plugin_integration['plugin_name']."</a>";
     								} else {
     									echo $plugin_integration['plugin_name'];
-    								} 							
+    								}
     							?>
     							</td>
     							<td><?php $plugin_integration['integration_ok'] ? _e('OK') : _e('Not Integrated, check if the plugin is installed and active');?></td>
     							<td class="desc"><?php echo $plugin_integration['integration_desc'] ?></td>
     						</tr>
     					<?php } ?>
-    			</table>    			
+    			</table>
     		</div>
-		<?php	
+		<?php
 	}
 }
 ?>

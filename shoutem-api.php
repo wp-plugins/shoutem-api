@@ -3,7 +3,7 @@
 Plugin Name: ShoutEm API
 Plugin URI: http://wordpress.org/extend/plugins/shoutem-api/
 Description: Exposes REST API for accessing blog posts and post comments, as well as adding and deleting comments. For more information, take a look at <a href="http://www.shoutem.com">www.shoutem.com</a>.
-Version: 1.3.6
+Version: 1.3.9
 Author URI: http://www.shoutem.com
 */
 
