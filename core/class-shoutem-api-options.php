@@ -54,6 +54,7 @@ class ShoutemApiOptions {
 	}
 
 	public function save_options($options) {
+		do_action("shoutem_save_options");
 		update_option($this->shoutem_options_name,$options);
 	}
 
@@ -170,6 +171,7 @@ class ShoutemApiOptions {
 	}
 
 	private function update_options(&$options) {
+
 		if(!empty($_REQUEST['encryption_key'])) {
 			$options['encryption_key'] = $_REQUEST['encryption_key'];
 		}
