@@ -74,37 +74,37 @@ class ShoutemControllerView {
 		}
 		
 		//this is used so that the _ends_with "able" rule is not applied to commentable field, since commentable is 'yes', 'no', 'dissabled'
-		if(strpos($name, "commentable") !== false) {
+		if (strpos($name, "commentable") !== false) {
 			return;
 		}
 		
-		if(strpos($name, "author_image_url") !== false) {
+		if (strpos($name, "author_image_url") !== false) {
 			$value = $this->get_avatar_url($value);
 			return;
 		}
 		
-		if (string_ends_with($name, "able")) {
+		if (SE_string_ends_with($name, "able")) {
 			$value = (boolean)$value;
 			return;
 		}
 		
-		if(strpos($name, "allowed") !== false) {
+		if (strpos($name, "allowed") !== false) {
 			$value = (boolean)$value;
 			return;
 		}
 		
-		if(strpos($name, "approved") !== false) {
+		if (strpos($name, "approved") !== false) {
 			$value = (boolean)$value;
 			return;
 		}
 		
-		if(string_ends_with($name, "latitude")
-		|| string_ends_with($name, "longitude")) {			
+		if (SE_string_ends_with($name, "latitude")
+		|| SE_string_ends_with($name, "longitude")) {			
 			$value = (float)$value;
 			return;
 		}		
 		
-		if (string_ends_with($name, "_ids")) {
+		if (SE_string_ends_with($name, "_ids")) {
 			$ids = explode(",", $value);
 			$value = array();
 			foreach($ids as $i => $id) {
@@ -113,7 +113,8 @@ class ShoutemControllerView {
 			return;
 		}
 		
-		if (string_ends_with($name, "_at") || string_ends_with($name, "time")) {
+		if (SE_string_ends_with($name, "_at")
+        || SE_string_ends_with($name, "time")) {
 			$value = date(DATE_RSS, strtotime($value));
 			return;
 		}

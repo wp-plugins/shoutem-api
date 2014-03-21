@@ -154,7 +154,7 @@ class ShoutemApi {
 }
 
 // utility stuff
-function string_ends_with($str, $end) {
+function SE_string_ends_with($str, $end) {
 	return $end === substr($str, -strlen($end));
 }
 
