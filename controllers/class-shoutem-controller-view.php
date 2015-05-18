@@ -148,7 +148,7 @@ class ShoutemControllerView {
 		//Moved this from format_recordset method becaouse it threw error.
 		if (!isset($this->_uri_without_offset_and_limit)) {
 			$this->_uri_without_offset_and_limit = preg_replace(array("/&offset=[0-9]+/", 
-				"/&limit=[0-9]+/"), "", $_SERVER['REQUEST_URI']);
+				"/&limit=[0-9]+/"), "", home_url($_SERVER['REQUEST_URI']));
 		}
 		
 		$url = $this->_uri_without_offset_and_limit . "&offset=$params[offset]&limit=$params[limit]";
