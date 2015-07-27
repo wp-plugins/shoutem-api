@@ -26,7 +26,8 @@ class ShoutemApiOptions {
 		'include_featured_image' => true,
 		'enable_fb_commentable' => false,
 		'enable_wp_commentable' => true,
-		'lead_img_custom_field_regex' => ''
+		'lead_img_custom_field_regex' => '',
+		'brightcove_token' => ''
 	);
 
 	public function __construct($shoutem_api) {
@@ -204,6 +205,10 @@ class ShoutemApiOptions {
 		}
 		$options['include_featured_image'] = $this->get_checkbox_value('include_featured_image');
 
+		if(!empty($_REQUEST['brightcove_token'])) {
+			$options['brightcove_token'] = $_REQUEST['brightcove_token'];
+		}
+
 		$this->save_options($options);
 	}
 
@@ -279,7 +284,7 @@ class ShoutemApiOptions {
         				<th scope="row"><?php _e('Include featured/thumbnail post image') ?></th>
         				<td>
         				<input type="hidden" name="include_featured_image" value="false" />
-        				<input type="checkbox" name="include_featured_image" value="true" <?php echo ($options['include_featured_image'] ? "checked=\"yes\"" : "") ?>" />
+        				<input type="checkbox" name="include_featured_image" value="true" <?php echo ($options['include_featured_image'] ? "checked=\"yes\"" : "") ?> />
         				</td>
         				</tr>
 
@@ -290,6 +295,11 @@ class ShoutemApiOptions {
         				<input type="radio" name="comments_provider" value="facebook" <?php echo (($options['enable_fb_commentable'] && !$options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Facebook Comments') ?> <br />
         				<input type="radio" name="comments_provider" value="wordpress_facebook" <?php echo (($options['enable_fb_commentable'] && $options['enable_wp_commentable']) ? "checked" : "");?>> <?php _e('Facebook and Wordpress Comments') ?> <br />
         				</td>
+        				</tr>
+
+        				<tr valign="top">
+        				<th scope="row"><?php _e('Brightcove API token') ?></th>
+        				<td><input type="text" name="brightcove_token" value="<?php echo htmlentities($options['brightcove_token']); ?>" size="60" />
         				</tr>
 
     				</table>

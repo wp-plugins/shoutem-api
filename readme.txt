@@ -12,7 +12,7 @@ ShoutEm is a web platform that allows you to turn your website into a full-featu
 
 http://www.youtube.com/watch?v=daD6GgRGDBg
 
-ShoutEm API Wordpress plugin serves as a connector between your Wordpress site and the mobile application build on ShoutEm. It exposes a REST API that allows your users to read blog posts from your site and comment them directly from your mobile application.
+ShoutEm API Wordpress plugin serves as a connector between your Wordpress site and the mobile application in a secure way. Your content is protected the same way as your regular Wordpress content.
 
 == Installation ==
 

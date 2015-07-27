@@ -18,7 +18,16 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 class ShoutemPostsDao extends ShoutemDao {
+
+	public function __construct() {
+		remove_filter('shoutem_shortcode_wrapper', 'shoutem_shortcode_wrapper_filter', 10);
+		add_filter('shoutem_shortcode_wrapper', 'shoutem_shortcode_wrapper_filter', 10, 3);
+
+		remove_filter('img_caption_shortcode', 'shoutem_img_caption_shortcode_filter', 10);
+		add_filter('img_caption_shortcode', 'shoutem_img_caption_shortcode_filter', 10, 3);
+	}
 
 	public function get($params) {
 		global $post;
@@ -177,6 +186,7 @@ class ShoutemPostsDao extends ShoutemDao {
 			);
 		}
 		$remaped_post['categories'] = $categories;
+
 		//*** ACTION  shoutem_get_post_start ***//
 		//Integration with external plugins will usually hook to this action to
 		//substitute shortcodes or generate appropriate attachments from the content.
@@ -187,10 +197,16 @@ class ShoutemPostsDao extends ShoutemDao {
 		));
 
 		$body = apply_filters('the_content', do_shortcode($remaped_post['body']));
-
 		if ($include_raw_post) {
 			$remaped_post['raw_post'] = $body;
 		}
+
+		$body = apply_filters('shoutem_shortcode_wrapper', $body, '#SMG_PhotoGallery', 'shoutemsmgallery');
+		$body = apply_filters('shoutem_shortcode_wrapper', $body, '.embed-twitter', 'shoutemtwitterembed');
+		$body = apply_filters('shoutem_shortcode_wrapper', $body, '.brightcove-embed', 'shoutembrightcoveembed');
+		$body = apply_filters('shoutem_shortcode_wrapper', $body, '#simple-brightcove-', 'shoutembrightcovesimple');
+		$body = apply_filters('shoutem_shortcode_wrapper', $body, '#wpcom-iframe-form-', 'shoutemwpcomwidgetembed');
+		$body = do_shortcode($body);
 
 		$striped_attachments = array ();
 		$remaped_post['body'] = sanitize_html($body, $striped_attachments);
@@ -264,4 +280,76 @@ class ShoutemPostsDao extends ShoutemDao {
 	}
 
 }
+
+function shoutem_img_caption_shortcode_filter($empty, $attr, $content) {
+	if (!isset($_REQUEST['shoutemapi'])) {
+		return '';
+	}
+
+	if (empty($attr['caption'])) {
+		return '<figure>'.$content.'</figure>';
+	}
+
+	$content = '<figure>'.$content.'<figcaption class="image-caption">'.$attr['caption'].'</figcaption>'.'</figure>';
+
+	$dom = new DOMDocument();
+	@$dom->loadHTML(do_shortcode($content));
+	foreach ($dom->getElementsByTagName('img') as $img) {
+		$img->setAttribute('caption', $attr['caption']);
+		if (!empty($attr['width'])) {
+			$img->setAttribute('width', $attr['width']);
+		}
+	}
+
+	return substr($dom->saveXML($dom->getElementsByTagName('body')->item(0)), 6, -7);
+}
+
+function shoutem_shortcode_wrapper_filter($content, $css_id_or_class, $shortcode) {
+	if (!isset($_REQUEST['shoutemapi'])) {
+		return $content;
+	}
+
+	$id = '';
+	$class = '';
+	if (strpos($css_id_or_class, "#") === 0) {
+		$id = substr($css_id_or_class, 1);
+	}
+
+	if (strpos($css_id_or_class, ".") === 0) {
+		$class = substr($css_id_or_class, 1);
+	}
+
+	if (!$id && !$class) {
+		return $content;
+	}
+
+	$dom = new DOMDocument();
+	// supress warnings caused by HTML5 tags
+	@$dom->loadHTML('<?xml encoding="UTF-8">'.$content);
+
+	$nodes_to_wrap = array();
+	$xpath = new DOMXPath($dom);
+	if ($id) {
+		$node = $xpath->query("//*[@id='".$id."']")->item(0);
+		if ($node) {
+			$nodes_to_wrap[] = $node;
+		}
+		else {
+			$nodes_to_wrap = $xpath->query("//*[contains(@id,'".$id."')]");
+		}
+	} else if ($class) {
+		$nodes_to_wrap = $xpath->query("//*[contains(concat(' ', @class, ' '),' ".$class." ')]");
+	}
+
+	foreach ($nodes_to_wrap as $node_to_wrap) {
+		$shortcode_fragment = $dom->createDocumentFragment();
+		$shortcode_fragment->appendChild(new DOMText('['.$shortcode.']'));
+		$shortcode_fragment->appendChild($node_to_wrap->cloneNode(true));
+		$shortcode_fragment->appendChild(new DOMText('[/'.$shortcode.']'));
+		$node_to_wrap->parentNode->replaceChild($shortcode_fragment, $node_to_wrap);
+	}
+
+	return substr($dom->saveHTML($dom->getElementsByTagName('body')->item(0)), 6, -7);
+}
+
 ?>

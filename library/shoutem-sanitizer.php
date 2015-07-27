@@ -45,15 +45,16 @@ function sanitize_html($html, &$attachments = null) {
 	$forbiden_elements = "/<(style|script|iframe|object|embed|dl).*?>.*?<\/(\\1)>/si";
 	$filtered_html = preg_replace($forbiden_elements, "",$filtered_html);
 
-
-	//Limited support for tables: each table row starts from a new line
-	$filtered_html = preg_replace("(</tr.*?>)", "<br/>",$filtered_html);
-
+	$disclaimer_div = "/<(div)(.+?id=(\\\\*([\\\"\\\']))disclaimer\\3.*?)>(.*?)<\/\\1>/si";
+	$filtered_html = preg_replace($disclaimer_div, "<p$2>$5</p>", $filtered_html);
+	
+	$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
+	$filtered_html = preg_replace($all_tags, "rename_tag_pre('\\1','\\2','\\3','\\4')",$filtered_html);
 	//first try wp_kses for removal of html elements
 	if (function_exists('wp_kses')) {
-
 		$allowed_html = array(
 				'attachment' => array('id'=>true,'type'=>true,'xmlns'=>true),
+				'seattachment' => array('id'=>true,'type'=>true,'xmlns'=>true),
 				'a' => array('href'=>true),
 				'blockquote' => array(),
 				'h1' => array(),
@@ -61,7 +62,7 @@ function sanitize_html($html, &$attachments = null) {
 				'h3' => array(),
 				'h4' => array(),
 				'h5' => array(),
-				'p' => array(),
+				'p' => array('id'=>true, 'class'=>true),
 				'br' => array(),
 				'b' => array(),
 				'strong' => array(),
@@ -69,20 +70,18 @@ function sanitize_html($html, &$attachments = null) {
 				'i' => array(),
 				'ul' => array(),
 				'li' => array(),
-				'ol' => array()
+				'ol' => array(),
+				'twitterdiv' => array('class'=>true)
 			);
 		$filtered_html = wp_kses($filtered_html, $allowed_html);
 	} else {
-		$all_tags = "/<(\/)?\s*([\w-_]+)(.*?)(\/)?>/ie";
 		$filtered_html = preg_replace($all_tags, "filter_tag('\\1','\\2','\\3','\\4')",$filtered_html);
 	}
+	$filtered_html = preg_replace($all_tags, "filter_attr('\\1','\\2','\\3','\\4')",$filtered_html);
+	$filtered_html = preg_replace($all_tags, "rename_tag_post('\\1','\\2','\\3','\\4')",$filtered_html);
 
-	/*
-	 * This is needed because wp_kses always removes 'se-attachment' or 'se:attachment' tag regardles of $allowed_html parameter.
-	 * To circumvent this, strip_attacments inserts <seattachment id=''/> instead of<se-attachment .../> into html.
-	 * Here, seattachment label is replaced with the proper label
-	 */
-	$filtered_html = preg_replace("/xmlns=\"v1\"(\s)*\/>/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"></attachment>",$filtered_html);
+	$filtered_html = preg_replace("/<\s*([^>\s]+)([^>]*)xmlns=\"v1\"([^>]*?)\s*\/>/i", "<$1$2xmlns=\"urn:xmlns:shoutem-com:cms:v1\"$3></$1>", $filtered_html);
+	$filtered_html = preg_replace("/xmlns=\"v1\"/i","xmlns=\"urn:xmlns:shoutem-com:cms:v1\"",$filtered_html);
 	return $filtered_html;
 }
 
@@ -128,6 +127,15 @@ function html_decode_list(&$list) {
 	}
 }
 
+function json_request($url) {
+	$response = wp_remote_get($url);
+	if ($response['response']['code'] != 200) {
+		return false;
+	}
+	$json = new SEServices_JSON();
+    return $json->decode($response['body']);
+}
+
 /**
  * Use only trough sanitize_html! Stripe attachments out of html and marks the places where attachments are striped.
  * @param html in/out modifies it so it contains <se-attachment id="attachment-id"> where attachment was striped
@@ -150,17 +158,21 @@ function strip_attachments(&$html) {
 
 function strip_images(&$html) {
 	$images = array();
+
 	if(preg_match_all('/<img.*?>/i',$html,$matches) > 0) {
 		foreach($matches[0] as $index => $imageTag) {
 			$id = 'img-'.$index;
+			
 			$image = get_tag_attr($imageTag, array(
 				'id' => $id,
 				'attachment-type' => 'image',
 				'src' => '',
 				'width' => '',
 				'height' => '',
-				'title' => ''
+				'title' => '',
+				'caption' => ''
 			));
+
 			$images []= $image;
 			$html = str_replace($imageTag,"<attachment id=\"$id\" type=\"image\" xmlns=\"v1\" />",$html);
 		}
@@ -171,6 +183,48 @@ function strip_images(&$html) {
 function sanitize_youtube_video_src($src) {
 	//replace embed/id format with v/id format
 	return str_replace('/embed/','/v/',$src);
+}
+
+function get_brightcove_video_id($src) {
+	parse_str($src, $params);
+	$key = '@videoPlayer';
+	if (!array_key_exists($key, $params)) return false;
+	return $params[$key];
+}
+
+function brightcove_attachment($tag_attr) {
+	$src = $tag_attr['src'];
+	$tag_attr['src'] = "";
+	$shoutem_options = new ShoutemApiOptions($this);
+	$options = $shoutem_options->get_options();
+	$token = $options['brightcove_token'];
+	if (!$token) {
+		return false;
+	}
+	$video_id = get_brightcove_video_id($src);
+	if (!$video_id) {
+		return false;
+	}
+
+	$url = "http://api.brightcove.com/services/library".
+			"?command=find_video_by_id".
+			"&video_fields=name,length,FLVURL,thumbnailURL".
+			"&media_delivery=http".
+			"&video_id=".$video_id.
+			"&token=".$token;
+	$video_json = json_request($url);
+	if (!$video_json || !$video_json->FLVURL) {
+		return false;
+	}
+	
+	$tag_attr['src'] = $video_json->FLVURL;
+	$tag_attr['title'] = $video_json->name;
+	$tag_attr['duration'] = $video_json->length/1000;
+	$tag_attr['thumbnail_url'] = $video_json->thumbnailURL;
+	$tag_attr['height'] = '';
+	$tag_attr['width'] = '';
+
+	return $tag_attr;
 }
 
 function strip_videos(&$html) {
@@ -191,6 +245,16 @@ function strip_videos(&$html) {
 				$videos []= $tag_attr;
 				$id = $tag_attr['id'];
 				$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
+			}
+
+			if (strpos($tag_attr['src'],'brightcove') !== false) {
+				$tag_attr['provider'] = 'brightcove';
+				$bc_attachment = brightcove_attachment($tag_attr);
+				if ($bc_attachment) {
+					$videos []= $bc_attachment;
+					$id = $bc_attachment['id'];
+					$html = str_replace($matches[0][$index],"<attachment id=\"$id\" type=\"video\" xmlns=\"v1\" />",$html);
+				}
 			}
 		}
 	}
@@ -243,15 +307,6 @@ function get_sound_cloud_playlist_id($src) {
 		return $id;
 	}
 	return false;
-}
-
-function json_request($url) {
-	$response = wp_remote_get($url);
-	if ($response['response']['code'] != 200) {
-		return false;
-	}
-	$json = new SEServices_JSON();
-    return $json->decode($response['body']);
 }
 
 function sound_cloud_attachment($tag_attr) {
@@ -363,18 +418,112 @@ function filter_tag($opening, $name, $attr, $closing) {
 
 	if (strcmp($name,'attachment') == 0) {
 		$filtered_attr = $attr;
-	} else if (strcmp($name,'se-attachment') == 0) {
+	} else if (strcmp($name,'se-attachment') == 0 || strcmp($name,'seattachment') == 0) {
 		$filtered_attr = $attr;
 	} else if (strcmp($name,'img') == 0) {
 		$filtered_attr = get_sanitized_attr('src',$attr);
 	} else if (strcmp($name,'a') == 0) {
 		$filtered_attr = get_sanitized_attr('href',$attr);
+	} else if (strcmp($name,'p') == 0) {
+		$filtered_attr = get_sanitized_attr('class',$attr);
+	} else if (strcmp($name,'twitterdiv') == 0) {
+		$filtered_attr = get_sanitized_attr('class',$attr);
 	}
 
 	$tag = '<'.$opening.$name.$filtered_attr.$closing.'>';
 	$tag = str_replace("\\\"", "\"", $tag);
 	return $tag;
 }
+
+/**
+ * private function used by sanitize_html to remove or modify class attribute of each html tag.
+ * @return filtered tag
+ */
+function filter_attr($opening, $name, $attr, $closing) {
+	$new_classes = array();
+	$clear_id = false;
+	$keep_class = false;
+	
+	$caption_class_regex = "/class=(\\\\*([\\\"\\']).*?)(wp-caption-text|image-caption).*?\\1/i";
+	if (preg_match($caption_class_regex, $attr)) {
+		$new_classes[] = 'image-caption';
+	}
+
+	$disclaimer_id_regex = "/id=(\\\\*([\\\"\\']))disclaimer\\1/i";
+	if (preg_match($disclaimer_id_regex, $attr)) {
+		$new_classes[] = 'disclaimer';
+		$clear_id = true;
+	}
+	else if (strcmp($name,'p') == 0) {
+		$clear_id = true;
+	}
+
+	if (strcmp($name,'twitterdiv') == 0) {
+		$keep_class = true;
+	}
+
+	$new_attr = $attr;
+	if (!$new_attr) $new_attr = '';
+	if (!$keep_class) {
+		$class_regex = "/(\s*class=(\\\\*[\\\"\\'])).*?\\2/i";
+		if (preg_match($class_regex, $attr)) {
+			$replace_string = '';
+			if (count($new_classes)) {
+				$replace_string = "$1".implode(" ", $new_classes)."$2";
+			}
+			$new_attr = preg_replace($class_regex, $replace_string, $new_attr);
+		} else if (count($new_classes)) {
+			$new_attr = $new_attr.' class="'.implode(" ", $new_classes).'"';
+		}
+		if ($clear_id) {
+			$id_regex = "/(\s*id=(\\\\*[\\\"\\'])).*?\\2/i";
+			$new_attr = preg_replace($id_regex, '', $new_attr);
+		}
+	}
+	
+	$tag = '<'.$opening.$name.$new_attr.$closing.'>';
+	$tag = str_replace("\\\"", "\"", $tag);
+	return $tag;
+}
+
+/**
+ * private function used by sanitize_html to rename tags
+ * @return filtered tag
+ */
+function rename_tag_pre($opening, $name, $attr, $closing) {
+	if (strcmp($name,'se-attachment') == 0) {
+		$name = 'seattachment';
+	} else if (strcmp($name,'figcaption') == 0) {
+		$name = 'p';
+	} else if (strcmp($name,'tr') == 0 && strcmp($opening,'/') == 0) {
+		//Limited support for tables: each table row starts from a new line
+		$opening = '';
+		$name = 'br';
+		$attr = '';
+		$closing = '/';
+	}
+
+	$tag = '<'.$opening.$name.$attr.$closing.'>';
+	$tag = str_replace("\\\"", "\"", $tag);
+	return $tag;
+}
+
+/**
+ * private function used by sanitize_html to rename tags
+ * @return filtered tag
+ */
+function rename_tag_post($opening, $name, $attr, $closing) {
+	if (strcmp($name,'seattachment') == 0) {
+		$name = 'se-attachment';
+	} else if (strcmp($name,'twitterdiv') == 0) {
+		$name = 'div';
+	}
+
+	$tag = '<'.$opening.$name.$attr.$closing.'>';
+	$tag = str_replace("\\\"", "\"", $tag);
+	return $tag;
+}
+
 
 function is_attr_forbidden($attr) {
 	if (preg_match("/\s*javascript.*/i",$attr['value']) > 0) {

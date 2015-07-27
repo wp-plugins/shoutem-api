@@ -24,9 +24,12 @@ require_once "class-shoutem-events-dao.php";
 require_once "class-shoutem-photos-dao.php";
 require_once "class-shoutem-ngg-dao.php";
 require_once "class-shoutem-flagallery-dao.php";
+require_once "class-shoutem-smg-dao.php";
 require_once "class-shoutem-podpress-dao.php";
 require_once "class-shoutem-powerpress-dao.php";
 require_once "class-shoutem-viper-dao.php";
+require_once "class-shoutem-twitterembed-dao.php";
+require_once "class-shoutem-brightcoveembed-dao.php";
 
 class ShoutemStandardDaoFactory {
 	
@@ -39,15 +42,21 @@ class ShoutemStandardDaoFactory {
 		
 		$this->ngg_dao = new ShoutemNGGDao();		
 		$this->flagallery_dao = new ShoutemFlaGalleryDao();
+		$this->smg_dao = new ShoutemSMGDao();
 		$this->podpress_dao = new ShoutemPodpressDao();
 		$this->powerpress_dao = new ShoutemPowerpressDao();
 		$this->viper_dao = new ShoutemViperDao();
+		$this->twitter_embed_dao = new ShoutemTwitterEmbedDao();
+		$this->brightcove_embed_dao = new ShoutemBrightcoveEmbedDao();
 		$this->plugin_integration_daos = array(
 			$this->ngg_dao, 
 			$this->flagallery_dao,
+			$this->smg_dao,
 			$this->podpress_dao,
 			$this->powerpress_dao,
-			$this->viper_dao
+			$this->viper_dao,
+			$this->twitter_embed_dao,
+			$this->brightcove_embed_dao
 		);
 		
 	}
