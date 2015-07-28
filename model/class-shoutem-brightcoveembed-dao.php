@@ -96,7 +96,7 @@ class ShoutemBrightcoveEmbedDao extends ShoutemDao {
 			$form_inputs[$form_input->getAttribute('name')] = $form_input->getAttribute('value');
 		}
 
-		$headers = ['Content-type: application/x-www-form-urlencoded'];
+		$headers = array('Content-type: application/x-www-form-urlencoded');
 		if ($url_params['wpcom_origin']) {
 			// $headers[] = 'Origin: '.$url_params['wpcom_origin'];
 		}
