@@ -22,6 +22,8 @@
 class ShoutemPostsDao extends ShoutemDao {
 
 	public function __construct() {
+		parent::__construct();
+
 		remove_filter('shoutem_shortcode_wrapper', 'shoutem_shortcode_wrapper_filter', 10);
 		add_filter('shoutem_shortcode_wrapper', 'shoutem_shortcode_wrapper_filter', 10, 3);
 

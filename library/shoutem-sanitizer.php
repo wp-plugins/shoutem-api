@@ -193,10 +193,11 @@ function get_brightcove_video_id($src) {
 }
 
 function brightcove_attachment($tag_attr) {
+	global $shoutem_api;
+
 	$src = $tag_attr['src'];
 	$tag_attr['src'] = "";
-	$shoutem_options = new ShoutemApiOptions($this);
-	$options = $shoutem_options->get_options();
+	$options = $shoutem_api->shoutem_options->get_options();
 	$token = $options['brightcove_token'];
 	if (!$token) {
 		return false;
